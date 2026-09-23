@@ -5,12 +5,13 @@ import hmac
 import logging
 import os
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
+from fastapi import APIRouter, Cookie, Depends, File, HTTPException, Response, UploadFile
 from pydantic import BaseModel, Field
 
 from lib.db import db
 from lib.drive import DriveError, parse_folder_id
 from lib.sync import sync_client_photos
+from lib.uploads import store_upload
 from models.clients import (
     AdminClient,
     Client,
@@ -246,6 +247,12 @@ async def admin_reset_settings():
         {"key": SETTINGS_KEY}, {"$set": {"key": SETTINGS_KEY, **fresh.model_dump()}}, upsert=True
     )
     return fresh
+
+
+@router.post("/uploads", dependencies=[Depends(require_admin)])
+async def admin_upload_image(file: UploadFile = File(...)):
+    """Accept a photo straight from the admin's device; returns the URL to use."""
+    return await store_upload(file)
 
 
 @router.post("/clients/{client_id}/sync", dependencies=[Depends(require_admin)])

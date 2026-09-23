@@ -21,6 +21,7 @@ from lib.poller import poll_drive_folders_forever
 from routers.clients import router as clients_router
 from routers.admin import router as admin_router
 from routers.settings import router as settings_router
+from routers.uploads import router as uploads_router
 
 
 # Startup runs before the yield, shutdown after it. Add your own setup/teardown here.
@@ -69,6 +70,7 @@ async def get_status_checks():
 
 api_router.include_router(clients_router)
 api_router.include_router(settings_router)
+api_router.include_router(uploads_router)
 api_router.include_router(admin_router)
 
 # Include the router in the main app

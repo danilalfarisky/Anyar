@@ -20,6 +20,17 @@ galleries with ZERO login. Photos come from PUBLIC Google Drive folders and sync
 - `NavigationHeader` reads the brand from settings itself, so the name is identical on every page
   (home, gallery, after opening a folder, admin) — this was a reported bug, now fixed.
 
+## Image uploads (hero cover from a phone)
+- `POST /api/admin/uploads` (multipart `file`, admin-only) → `lib/uploads.py` validates it is an
+  image, applies `ImageOps.exif_transpose`, shrinks to max 2200px and re-encodes as progressive
+  JPEG q82, then stores the bytes in **Mongo `uploads`** (no disk dependency — survives redeploys).
+  Returns `{id, url: "/api/uploads/<id>", bytes}`.
+- `GET /api/uploads/{id}` serves it publicly. Limits: 20 MB in, non-images rejected with an
+  Indonesian message. `pillow` is pinned in backend/requirements.txt.
+- Admin UI: "Foto Sampul" tab → "Unggah dari Galeri / Kamera" (`<input type="file" accept="image/*">`),
+  which uploads via `apiUpload()` in `frontend/src/lib/api.ts` and **auto-saves** the settings so the
+  guest hero updates without a second click. Pasting a URL still works as an alternative.
+
 ## Screens (routes in `frontend/src/App.tsx`)
 - `/` **Home** — full-screen portrait hero (overline • date • big shimmering title • scroll cue,
   all admin-editable) → scroll → grid of **folder cards**, one per client (2 cols mobile, 4 desktop).

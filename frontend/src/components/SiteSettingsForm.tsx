@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Image as ImageIcon, Palette, RotateCcw, Save, Type } from "lucide-react";
+import { Image as ImageIcon, Palette, RotateCcw, Save, Type, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ApiError, apiGet, apiPost, apiPut } from "@/lib/api";
+import { ApiError, apiGet, apiPost, apiPut, apiUpload } from "@/lib/api";
 import { applyPalette } from "@/components/ThemeApplier";
 import type { SiteSettings } from "@/lib/types";
 
@@ -125,6 +125,7 @@ const PRESETS: { name: string; colors: Partial<SiteSettings> }[] = [
 export default function SiteSettingsForm() {
   const qc = useQueryClient();
   const [draft, setDraft] = useState<SiteSettings | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const settings = useQuery({
     queryKey: ["admin", "settings"],
@@ -161,6 +162,19 @@ export default function SiteSettingsForm() {
     onSuccess: (d) => {
       toast.success("Kembali ke tampilan default");
       refresh(d);
+    },
+    onError: (e) => toast.error(errorDetail(e)),
+  });
+
+  const upload = useMutation({
+    mutationFn: (file: File) => apiUpload<{ url: string }>("/admin/uploads", file),
+    onSuccess: async (res) => {
+      // persist immediately so the guest page uses the new cover without an extra click
+      const next = { ...(draft as SiteSettings), hero_image_url: res.url };
+      setDraft(next);
+      const saved = await apiPut<SiteSettings>("/admin/settings", next);
+      toast.success("Foto sampul berhasil diunggah");
+      refresh(saved);
     },
     onError: (e) => toast.error(errorDetail(e)),
   });
@@ -299,9 +313,39 @@ export default function SiteSettingsForm() {
 
             {/* ---------- FOTO SAMPUL ---------- */}
             <TabsContent value="foto" className="mt-5 space-y-4">
+              {/* Upload straight from the device — no URL needed */}
+              <div className="rounded-xl border border-dashed border-[var(--gold)]/40 bg-[var(--ink)] p-4 text-center">
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept="image/*"
+                  data-testid="settings-hero-file-input"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) upload.mutate(file);
+                    e.target.value = ""; // allow re-picking the same file
+                  }}
+                />
+                <Button
+                  type="button"
+                  data-testid="settings-hero-upload-btn"
+                  onClick={() => fileInput.current?.click()}
+                  disabled={upload.isPending}
+                  className="bg-[var(--maroon)] text-[var(--cream)] hover:bg-[var(--primary-hover)]"
+                >
+                  <Upload className="h-4 w-4" />
+                  {upload.isPending ? "Mengunggah…" : "Unggah dari Galeri / Kamera"}
+                </Button>
+                <p className="mt-2 text-xs text-[var(--cream-muted)]">
+                  Pilih langsung dari ponsel — foto otomatis diperkecil & disimpan (maks. 20 MB).
+                  Tersimpan sendiri begitu selesai diunggah.
+                </p>
+              </div>
+
               <div className="grid gap-2">
                 <Label htmlFor="setting-hero_image_url" className="text-[var(--cream-muted)]">
-                  URL Foto Sampul Atas (disarankan potret)
+                  Atau tempel URL foto sampul (opsional)
                 </Label>
                 <Input
                   id="setting-hero_image_url"
