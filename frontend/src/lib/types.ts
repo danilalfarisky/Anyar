@@ -26,6 +26,7 @@ export interface ClientDetail {
   drive_folder_id: string | null;
   drive_folder_url: string | null;
   cover: string | null;
+  cover_photo_id: string | null;
   photo_count: number;
   synced_at: string | null;
   photos: Photo[];
@@ -39,6 +40,8 @@ export interface AdminClient {
   drive_folder_id: string | null;
   drive_folder_url: string | null;
   cover_url: string | null;
+  cover_photo_id: string | null;
+  custom_photo_order: boolean;
   sort_order: number;
   synced_at: string | null;
   created_at: string;

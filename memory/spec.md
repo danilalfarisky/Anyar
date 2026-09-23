@@ -24,6 +24,16 @@ manages clients.
 - The guest-facing "Buka di Drive" link was REMOVED by user request; the badge now reads
   "Foto diperbarui otomatis". Admin table still links the folder id for management.
 
+## Photo order & cover pick (admin)
+- `PUT /api/admin/clients/{id}/photos/order` body `{photo_ids: [...]}` → writes `position` in that
+  order and flips `clients.custom_photo_order = true`; unlisted photos are appended after.
+- `PUT /api/admin/clients/{id}/cover` body `{photo_id}` (null clears) → sets `clients.cover_photo_id`
+  and clears `cover_url`. Cover precedence in `cover_for()`: picked photo → `cover_url` → first photo.
+- Once `custom_photo_order` is true, `lib/sync.py` no longer re-sorts existing photos; NEW Drive
+  files are appended at the end, so the admin's arrangement survives automatic syncing.
+- UI: `frontend/src/components/PhotoManagerModal.tsx`, opened from the admin table's
+  `admin-client-photos-btn`; arrow buttons reorder, star sets cover, "Simpan Urutan" persists.
+
 ## Key flows
 - Guest home `/`: hero + client cards (cover, name, date, venue, photo count) + search filter.
 - Guest gallery `/gallery/:clientId`: masonry photo grid + lightbox (←/→/ESC, download).

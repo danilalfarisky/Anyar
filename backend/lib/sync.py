@@ -39,7 +39,10 @@ async def sync_client_photos(client: Client) -> int:
             {"client_id": client.id, "drive_file_id": {"$in": stale}}
         )
 
-    # 2. insert newcomers, and keep every row's position in step with Drive's ordering
+    # 2. insert newcomers. If an admin arranged the order manually, existing rows keep their
+    #    positions and new arrivals are appended at the end instead of re-sorting the gallery.
+    manual = client.custom_photo_order
+    next_position = (max((d.get("position", 0) for d in existing.values()), default=-1) + 1)
     new_docs = []
     for position, item in enumerate(items):
         current = existing.get(item.drive_file_id)
@@ -51,14 +54,19 @@ async def sync_client_photos(client: Client) -> int:
                     "drive_file_id": item.drive_file_id,
                     "name": item.name,
                     "url": "",
-                    "position": position,
+                    "position": next_position if manual else position,
                 }
             )
-        elif current.get("position") != position or current.get("name") != item.name:
+            next_position += 1
+        elif not manual and (
+            current.get("position") != position or current.get("name") != item.name
+        ):
             await db.photos.update_one(
                 {"id": current["id"]},
                 {"$set": {"position": position, "name": item.name}},
             )
+        elif manual and current.get("name") != item.name:
+            await db.photos.update_one({"id": current["id"]}, {"$set": {"name": item.name}})
     if new_docs:
         await db.photos.insert_many(new_docs)
 

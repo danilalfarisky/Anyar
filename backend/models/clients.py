@@ -22,8 +22,10 @@ class Client(BaseModel):
     event_date: str | None = None  # ISO "YYYY-MM-DD"
     venue: str | None = None
     drive_folder_id: str | None = None
-    drive_folder_url: str | None = None  # the link as pasted by admin (for "open in Drive")
-    cover_url: str | None = None  # admin override; defaults to the first photo
+    drive_folder_url: str | None = None  # the link as pasted by admin
+    cover_url: str | None = None  # external-URL override; defaults to the first photo
+    cover_photo_id: str | None = None  # a photo picked as cover by the admin (wins over cover_url)
+    custom_photo_order: bool = False  # True once an admin reorders: Drive sync stops re-sorting
     sort_order: int = 0
     synced_at: datetime | None = None
     created_at: datetime = Field(default_factory=utcnow)
@@ -66,6 +68,7 @@ class ClientDetail(BaseModel):
     drive_folder_id: str | None
     drive_folder_url: str | None
     cover: str | None
+    cover_photo_id: str | None = None
     photo_count: int
     synced_at: datetime | None
     photos: list[PhotoOut]
@@ -107,6 +110,11 @@ def to_photo_out(photo: Photo) -> PhotoOut:
 
 
 def cover_for(client: Client, photos: list[Photo]) -> str | None:
+    """Cover precedence: admin-picked photo → external URL override → first photo."""
+    if client.cover_photo_id:
+        picked = next((p for p in photos if p.id == client.cover_photo_id), None)
+        if picked:
+            return to_photo_out(picked).thumb
     if client.cover_url:
         return client.cover_url
     if photos:

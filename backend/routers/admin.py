@@ -11,7 +11,16 @@ from pydantic import BaseModel, Field
 from lib.db import db
 from lib.drive import DriveError, parse_folder_id
 from lib.sync import sync_client_photos
-from models.clients import AdminClient, Client, ClientCreate, ClientUpdate, utcnow
+from models.clients import (
+    AdminClient,
+    Client,
+    ClientCreate,
+    ClientUpdate,
+    Photo,
+    PhotoOut,
+    to_photo_out,
+    utcnow,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -155,6 +164,62 @@ async def admin_delete_client(client_id: str):
     await db.clients.delete_one({"id": client_id})
     await db.photos.delete_many({"client_id": client_id})
     return {"ok": True}
+
+
+class ReorderInput(BaseModel):
+    photo_ids: list[str] = Field(min_length=1)
+
+
+class CoverInput(BaseModel):
+    photo_id: str | None = None  # null clears the pick and falls back to the first photo
+
+
+@router.put(
+    "/clients/{client_id}/photos/order",
+    response_model=list[PhotoOut],
+    dependencies=[Depends(require_admin)],
+)
+async def admin_reorder_photos(client_id: str, input: ReorderInput):
+    """Persist the admin's chosen photo order; Drive sync stops re-sorting afterwards."""
+    doc = await db.clients.find_one({"id": client_id})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Klien tidak ditemukan")
+    owned = {
+        d["id"] async for d in db.photos.find({"client_id": client_id}, {"id": 1})
+    }
+    unknown = [pid for pid in input.photo_ids if pid not in owned]
+    if unknown:
+        raise HTTPException(status_code=400, detail="Ada foto yang bukan milik klien ini")
+    for position, photo_id in enumerate(input.photo_ids):
+        await db.photos.update_one({"id": photo_id}, {"$set": {"position": position}})
+    # photos not named in the payload keep following the listed ones
+    for offset, photo_id in enumerate(sorted(owned - set(input.photo_ids))):
+        await db.photos.update_one(
+            {"id": photo_id}, {"$set": {"position": len(input.photo_ids) + offset}}
+        )
+    await db.clients.update_one({"id": client_id}, {"$set": {"custom_photo_order": True}})
+    photos = await db.photos.find({"client_id": client_id}).sort([("position", 1)]).to_list(5000)
+    return [to_photo_out(Photo(**p)) for p in photos]
+
+
+@router.put("/clients/{client_id}/cover", response_model=AdminClient, dependencies=[Depends(require_admin)])
+async def admin_set_cover(client_id: str, input: CoverInput):
+    """Pick one of the client's photos as the card cover (or clear the pick)."""
+    doc = await db.clients.find_one({"id": client_id})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Klien tidak ditemukan")
+    client = Client(**doc)
+    if input.photo_id:
+        owned = await db.photos.find_one({"id": input.photo_id, "client_id": client_id})
+        if not owned:
+            raise HTTPException(status_code=400, detail="Foto tidak ditemukan pada klien ini")
+        client.cover_photo_id = input.photo_id
+        client.cover_url = None  # a picked photo replaces any external cover URL
+    else:
+        client.cover_photo_id = None
+    await db.clients.replace_one({"id": client_id}, client.model_dump())
+    counts = await _photo_counts()
+    return _admin_out(client, counts.get(client_id, 0))
 
 
 @router.post("/clients/{client_id}/sync", dependencies=[Depends(require_admin)])

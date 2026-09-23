@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import {
   FolderOpen,
   Images,
+  LayoutGrid,
   Lock,
   LogOut,
   Pencil,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import NavigationHeader from "@/components/NavigationHeader";
 import ClientEditorModal from "@/components/ClientEditorModal";
+import PhotoManagerModal from "@/components/PhotoManagerModal";
 import { ApiError, apiDelete, apiGet, apiPost } from "@/lib/api";
 import type { AdminClient } from "@/lib/types";
 import { formatDate } from "@/lib/format";
@@ -51,6 +53,7 @@ export default function Admin() {
   const [pinError, setPinError] = useState<string | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<AdminClient | null>(null);
+  const [managing, setManaging] = useState<AdminClient | null>(null);
   const [deleting, setDeleting] = useState<AdminClient | null>(null);
 
   const me = useQuery({
@@ -290,6 +293,16 @@ export default function Admin() {
                           <Button
                             variant="ghost"
                             size="icon-xs"
+                            data-testid="admin-client-photos-btn"
+                            aria-label={`Atur urutan & sampul foto ${c.name}`}
+                            disabled={c.photo_count === 0}
+                            onClick={() => setManaging(c)}
+                          >
+                            <LayoutGrid className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon-xs"
                             data-testid="admin-client-sync-btn"
                             aria-label={`Sinkronkan foto ${c.name}`}
                             disabled={!c.drive_folder_id || sync.isPending}
@@ -321,6 +334,13 @@ export default function Admin() {
         open={editorOpen}
         onOpenChange={setEditorOpen}
         client={editing}
+        onSaved={refreshCaches}
+      />
+
+      <PhotoManagerModal
+        open={Boolean(managing)}
+        onOpenChange={(open) => !open && setManaging(null)}
+        client={managing}
         onSaved={refreshCaches}
       />
 

@@ -88,6 +88,7 @@ async def get_client(client_id: str):
         drive_folder_id=client.drive_folder_id,
         drive_folder_url=client.drive_folder_url,
         cover=cover_for(client, photos),
+        cover_photo_id=client.cover_photo_id,
         photo_count=len(photos),
         synced_at=_with_tz(client.synced_at),
         photos=[to_photo_out(p) for p in photos],
