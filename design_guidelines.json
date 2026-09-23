@@ -1,0 +1,316 @@
+{
+  "theme": "light",
+  "archetype": "LUXURY_WARM_ORGANIC_HYBRID",
+  "design_tone": "Timeless, romantic, luxurious yet minimal and warm. Inspired by high-end editorial wedding albums with ivory/cream surfaces, refined gold foil accents, bespoke serif headings, and crystal clear photo presentation.",
+  "locale": {
+    "language": "id-ID",
+    "date_format": "dd MMMM yyyy",
+    "currency": "IDR",
+    "timezone": "Asia/Jakarta"
+  },
+  "colors": {
+    "surfaces": [
+      {
+        "name": "page",
+        "kind": "solid",
+        "bg": "#FAF8F5",
+        "on_bg": "#1C1917",
+        "on_bg_muted": "#78716C",
+        "roles": {
+          "link": "#9A6B2F",
+          "error": "#B91C1C",
+          "success": "#15803D"
+        }
+      },
+      {
+        "name": "panel",
+        "kind": "solid",
+        "bg": "#FFFFFF",
+        "on_bg": "#1C1917",
+        "on_bg_muted": "#57534E",
+        "roles": {
+          "link": "#9A6B2F",
+          "error": "#B91C1C",
+          "success": "#15803D"
+        }
+      },
+      {
+        "name": "card_subtle",
+        "kind": "solid",
+        "bg": "#F5EFEB",
+        "on_bg": "#1C1917",
+        "on_bg_muted": "#57534E",
+        "roles": {
+          "link": "#9A6B2F",
+          "error": "#B91C1C",
+          "success": "#15803D"
+        }
+      },
+      {
+        "name": "inverse",
+        "kind": "solid",
+        "bg": "#1C1917",
+        "on_bg": "#FAF8F5",
+        "on_bg_muted": "#D6D3D1",
+        "roles": {
+          "link": "#EAB308",
+          "error": "#F87171",
+          "success": "#4ADE80"
+        }
+      },
+      {
+        "name": "gold_badge",
+        "kind": "solid",
+        "bg": "#FEF3C7",
+        "on_bg": "#78350F",
+        "on_bg_muted": "#92400E"
+      },
+      {
+        "name": "hero",
+        "kind": "image",
+        "contrast_against": "#1C1917",
+        "guarantee": "scrim: linear-gradient(180deg, rgba(28,25,23,0.75) 0%, rgba(28,25,23,0.45) 60%, rgba(28,25,23,0.85) 100%)",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#E7E5E4",
+        "roles": {
+          "link": "#FDE047",
+          "error": "#FCA5A5",
+          "success": "#86EFAC"
+        }
+      },
+      {
+        "name": "lightbox_backdrop",
+        "kind": "solid",
+        "bg": "#0C0A09",
+        "on_bg": "#FAF8F5",
+        "on_bg_muted": "#A8A29E",
+        "roles": {
+          "link": "#FDE047",
+          "error": "#F87171",
+          "success": "#4ADE80"
+        }
+      },
+      {
+        "name": "header_glass",
+        "kind": "glass",
+        "contrast_against": "#FAF8F5",
+        "guarantee": "backdrop-blur-md bg-[#FAF8F5]/90 border-b border-[#E7DFD5]",
+        "on_bg": "#1C1917",
+        "on_bg_muted": "#57534E",
+        "roles": {
+          "link": "#9A6B2F"
+        }
+      }
+    ],
+    "accent": "#9A6B2F",
+    "accent_hover": "#7D5321",
+    "on_accent": "#FFFFFF",
+    "gold_border": "#E7DFD5",
+    "gold_shimmer": "linear-gradient(135deg, #DFB76C 0%, #B8860B 50%, #9A6B2F 100%)"
+  },
+  "typography": {
+    "font_heading": "'Playfair Display Variable', Georgia, serif",
+    "font_body": "'DM Sans Variable', -apple-system, BlinkMacSystemFont, sans-serif",
+    "font_mono": "'JetBrains Mono Variable', monospace",
+    "scale_px": {
+      "display": 56,
+      "h1": 42,
+      "h2": 32,
+      "h3": 22,
+      "body": 16,
+      "caption": 14
+    },
+    "font_weights": {
+      "light": 300,
+      "normal": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "letter_spacing": {
+      "hero_overline": "0.25em",
+      "heading": "-0.02em",
+      "body": "normal"
+    }
+  },
+  "entry_surfaces": {
+    "/": "editorial wedding portal — warm cream hero with romantic photography banner & couple stories, leading directly into an asymmetric client wedding showcase grid with search & filter pills",
+    "/gallery/:clientId": "immersive wedding gallery — high-impact couple header with date/venue/total count, Google Drive sync status pill, masonry photo wall with filter tabs, batch download link, and full-screen luxury lightbox",
+    "/admin": "protected management console — elegant PIN auth entry card, transitioning to client manager dashboard with Drive URL validator, cover image picker, photo sync trigger, and client metrics"
+  },
+  "layout_and_grids": {
+    "container_max_width": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "client_grid": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10",
+    "photo_masonry_grid": "columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 md:gap-6 space-y-4 md:space-y-6",
+    "admin_dashboard_grid": "grid grid-cols-1 lg:grid-cols-12 gap-8"
+  },
+  "motion": {
+    "hero_fade_in": "opacity: 0 to 1, y: 20 to 0, duration: 0.8s easeOut",
+    "card_hover": "transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease",
+    "photo_reveal": "staggered entrance with 0.05s delay per image",
+    "lightbox_zoom": "scale: 0.96 to 1, opacity: 0 to 1, duration: 0.25s ease"
+  },
+  "image_urls": {
+    "hero_banner": {
+      "url": "https://images.unsplash.com/photo-1731566971965-acfb1151fc34?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAxODF8MHwxfHNlYXJjaHw0fHx3ZWRkaW5nJTIwY291cGxlJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzkwMTU1Nzg4fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Artistic silhouette & romantic lighting wedding couple hero banner"
+    },
+    "clients": [
+      {
+        "id": "client-1",
+        "name": "Aditya & Clarissa",
+        "date": "14 Juli 2024",
+        "venue": "The Glass House, Bali",
+        "cover_image": "https://images.unsplash.com/photo-1606490208247-b65be3d94cd1?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTV8MHwxfHNlYXJjaHwyfHx3ZWRkaW5nJTIwY2VyZW1vbnklMjBicmlkZSUyMGdyb29tfGVufDB8fHx8MTc5MDE1NTc4OHww&ixlib=rb-4.1.0&q=85",
+        "photo_count": 48
+      },
+      {
+        "id": "client-2",
+        "name": "Bimantara & Alyssa",
+        "date": "28 September 2024",
+        "venue": "Plataran Hutan Kota, Jakarta",
+        "cover_image": "https://images.unsplash.com/photo-1672288336066-8cd91b57b510?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTV8MHwxfHNlYXJjaHwzfHx3ZWRkaW5nJTIwY2VyZW1vbnklMjBicmlkZSUyMGdyb29tfGVufDB8fHx8MTc5MDE1NTc4OHww&ixlib=rb-4.1.0&q=85",
+        "photo_count": 62
+      },
+      {
+        "id": "client-3",
+        "name": "Reza & Nadia",
+        "date": "10 Oktober 2024",
+        "venue": "Amanjiwo Resort, Magelang",
+        "cover_image": "https://images.unsplash.com/photo-1648154164366-d067faecdc51?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDJ8MHwxfHNlYXJjaHwzfHx3ZWRkaW5nJTIwcmVjZXB0aW9uJTIwY2VsZWJyYXRpb258ZW58MHx8fHwxNzkwMTU1Nzg4fDA&ixlib=rb-4.1.0&q=85",
+        "photo_count": 55
+      },
+      {
+        "id": "client-4",
+        "name": "Dimas & Keisha",
+        "date": "05 November 2024",
+        "venue": "Pine Hill, Lembang Bandung",
+        "cover_image": "https://images.pexels.com/photos/35553660/pexels-photo-35553660.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "photo_count": 40
+      },
+      {
+        "id": "client-5",
+        "name": "Farhan & Zahra",
+        "date": "18 Desember 2024",
+        "venue": "Sampoerna Strategic Square, Jakarta",
+        "cover_image": "https://images.pexels.com/photos/28824204/pexels-photo-28824204.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "photo_count": 74
+      },
+      {
+        "id": "client-6",
+        "name": "Jonathan & Valerie",
+        "date": "20 Januari 2025",
+        "venue": "Alila Villas Uluwatu, Bali",
+        "cover_image": "https://images.unsplash.com/photo-1606217239582-d9f72323bcd7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTV8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwY2VyZW1vbnklMjBicmlkZSUyMGdyb29tfGVufDB8fHx8MTc5MDE1NTc4OHww&ixlib=rb-4.1.0&q=85",
+        "photo_count": 86
+      }
+    ],
+    "sample_gallery_pool": [
+      "https://images.unsplash.com/photo-1672288336066-8cd91b57b510?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTV8MHwxfHNlYXJjaHwzfHx3ZWRkaW5nJTIwY2VyZW1vbnklMjBicmlkZSUyMGdyb29tfGVufDB8fHx8MTc5MDE1NTc4OHww&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1606217239582-d9f72323bcd7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTV8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwY2VyZW1vbnklMjBicmlkZSUyMGdyb29tfGVufDB8fHx8MTc5MDE1NTc4OHww&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1474867985807-96ca17098cc9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTV8MHwxfHNlYXJjaHw0fHx3ZWRkaW5nJTIwY2VyZW1vbnklMjBicmlkZSUyMGdyb29tfGVufDB8fHx8MTc5MDE1NTc4OHww&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1606490208247-b65be3d94cd1?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTV8MHwxfHNlYXJjaHwyfHx3ZWRkaW5nJTIwY2VyZW1vbnklMjBicmlkZSUyMGdyb29tfGVufDB8fHx8MTc5MDE1NTc4OHww&ixlib=rb-4.1.0&q=85",
+      "https://images.pexels.com/photos/35553660/pexels-photo-35553660.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "https://images.pexels.com/photos/30772210/pexels-photo-30772210.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "https://images.unsplash.com/photo-1648154164366-d067faecdc51?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDJ8MHwxfHNlYXJjaHwzfHx3ZWRkaW5nJTIwcmVjZXB0aW9uJTIwY2VsZWJyYXRpb258ZW58MHx8fHwxNzkwMTU1Nzg4fDA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDJ8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwcmVjZXB0aW9uJTIwY2VsZWJyYXRpb258ZW58MHx8fHwxNzkwMTU1Nzg4fDA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1439539698758-ba2680ecadb9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDJ8MHwxfHNlYXJjaHw0fHx3ZWRkaW5nJTIwcmVjZXB0aW9uJTIwY2VsZWJyYXRpb258ZW58MHx8fHwxNzkwMTU1Nzg4fDA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1714972383570-44ddc9738355?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDJ8MHwxfHNlYXJjaHwyfHx3ZWRkaW5nJTIwcmVjZXB0aW9uJTIwY2VsZWJyYXRpb258ZW58MHx8fHwxNzkwMTU1Nzg4fDA&ixlib=rb-4.1.0&q=85",
+      "https://images.pexels.com/photos/13434437/pexels-photo-13434437.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "https://images.pexels.com/photos/28824204/pexels-photo-28824204.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    ]
+  },
+  "key_components": [
+    {
+      "name": "NavigationHeader",
+      "path": "frontend/src/components/NavigationHeader.tsx",
+      "purpose": "Sticky luxury frosted nav with brand monogram, 'Beranda' link, Client quick-search, and 'Area Admin' PIN link."
+    },
+    {
+      "name": "HeroWeddingBanner",
+      "path": "frontend/src/components/HeroWeddingBanner.tsx",
+      "purpose": "Warm editorial hero with elegant typography 'Abadikan Setiap Detik Keindahan & Janji Suci', subtle gold divider, and search bar."
+    },
+    {
+      "name": "ClientCard",
+      "path": "frontend/src/components/ClientCard.tsx",
+      "purpose": "Luxury photo card with smooth hover zoom, gold foil badge with photo count, date, location, and 'Buka Galeri Foto' action button."
+    },
+    {
+      "name": "PhotoLightbox",
+      "path": "frontend/src/components/PhotoLightbox.tsx",
+      "purpose": "High-end lightbox modal with keyboard nav (Left/Right/ESC), zoom/fit toggle, image counter (misal 5 dari 48), caption, download individual button, and smooth slide animation."
+    },
+    {
+      "name": "GoogleDriveSyncBadge",
+      "path": "frontend/src/components/GoogleDriveSyncBadge.tsx",
+      "purpose": "Indicates Google Drive folder connectivity, last synced timestamp, and quick-refresh button."
+    },
+    {
+      "name": "AdminPinDialog",
+      "path": "frontend/src/components/AdminPinDialog.tsx",
+      "purpose": "6-digit or 4-digit PIN authentication modal (default PIN '1234' or '8888') with clear feedback and remember session state in localStorage."
+    },
+    {
+      "name": "ClientEditorModal",
+      "path": "frontend/src/components/ClientEditorModal.tsx",
+      "purpose": "Shadcn Dialog form to add/edit client name, wedding date, venue, Google Drive Folder ID / URL, cover photo selector, and instant preview."
+    }
+  ],
+  "accessibility_and_testing": {
+    "data_testids": [
+      "nav-brand-logo",
+      "nav-home-link",
+      "nav-admin-link",
+      "search-client-input",
+      "client-card-item",
+      "client-card-title",
+      "client-card-date",
+      "client-card-open-btn",
+      "gallery-back-button",
+      "gallery-title",
+      "gallery-sync-btn",
+      "gallery-photo-item",
+      "gallery-open-drive-btn",
+      "lightbox-modal",
+      "lightbox-image",
+      "lightbox-prev-btn",
+      "lightbox-next-btn",
+      "lightbox-close-btn",
+      "lightbox-download-btn",
+      "admin-pin-input",
+      "admin-pin-submit-btn",
+      "admin-add-client-btn",
+      "admin-client-row",
+      "admin-client-edit-btn",
+      "admin-client-delete-btn",
+      "admin-client-sync-btn",
+      "admin-form-name-input",
+      "admin-form-date-input",
+      "admin-form-venue-input",
+      "admin-form-drive-url-input",
+      "admin-form-cover-input",
+      "admin-form-submit-btn"
+    ],
+    "wcag_rules": "All text must pass 4.5:1 contrast against surface backgrounds. Lightbox overlay uses #0C0A09 with bright white controls."
+  },
+  "instructions_to_main_agent": [
+    "Template: farm-ts (FastAPI backend at 8001 + React 19 / Vite frontend at 3000 with Tailwind v4).",
+    "Font configuration in frontend/src/index.css: import '@fontsource-variable/playfair-display' and '@fontsource-variable/dm-sans'. Map --font-heading to 'Playfair Display Variable' and --font-sans to 'DM Sans Variable'.",
+    "Google Drive Integration: Support public Google Drive folder links (e.g., https://drive.google.com/drive/folders/XYZ). Parse folder ID automatically in the backend. When configured without Google Cloud API credentials, fallback gracefully to a realistic simulated Drive photo scraper/resolver that returns curated wedding photos mapped to the folder ID, with realistic filenames (e.g., IMG_2024_01.JPG) and metadata.",
+    "Guest Experience: ZERO LOGIN required for guests visiting homepage or client gallery routes.",
+    "Admin Experience: Protected by a clean PIN gate (default '1234' with option to change). Once unlocked, admin can Add, Edit, Delete clients, change cover photos, update Drive links, and click 'Sinkronisasi Foto Sekarang'.",
+    "Indonesian UI Language: Use warm and polite Indonesian wedding phrasing ('Galeri Foto Pernikahan', 'Momen Bahagia', 'Buka Galeri Foto', 'Tanggal Acara', 'Lokasi Acara', 'Sinkronisasi Drive', 'Buka di Google Drive', 'Unduh Foto', 'Kelola Klien Wedding', 'Masukkan PIN Admin').",
+    "Lightbox: Full keyboard navigation (ArrowLeft, ArrowRight, Escape), smooth animations, full-screen view, and download capability.",
+    "Seed Initial Data: Create /app/backend/seed.py with at least 6 rich client wedding galleries with real wedding photos from image_urls, varied venues across Indonesia (Bali, Jakarta, Bandung, Magelang), and run it so preview is instantly populated."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": {
+    "design_standard": "Top 1% luxury wedding editorial aesthetic. Soft ivory backgrounds, gold borders, elegant typography.",
+    "anti_patterns": [
+      "Do NOT use default stark blue buttons or generic tech gradients.",
+      "Do NOT use Inter for headers; use Playfair Display.",
+      "Do NOT use raw HTML selects or unstyled date inputs; use Shadcn components.",
+      "Do NOT center-align the entire app container; use asymmetric luxury editorial grid layouts."
+    ]
+  }
+}
