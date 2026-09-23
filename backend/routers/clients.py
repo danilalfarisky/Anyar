@@ -19,7 +19,7 @@ from models.clients import (
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/clients", tags=["clients"])
 
-STALE_AFTER_SECONDS = 6 * 60 * 60  # re-check the Drive folder if the cache is older than 6h
+STALE_AFTER_SECONDS = 45  # a guest opening the gallery re-reads Drive if the cache is older than this
 
 
 def _with_tz(dt: datetime | None) -> datetime | None:

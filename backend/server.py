@@ -17,6 +17,7 @@ load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
 from lib.db import client, db, ensure_indexes
+from lib.poller import poll_drive_folders_forever
 from routers.clients import router as clients_router
 from routers.admin import router as admin_router
 
@@ -25,7 +26,10 @@ from routers.admin import router as admin_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.index_task = asyncio.create_task(ensure_indexes())  # background: a big index build must not block boot
+    # Watches every client's Google Drive folder so new exports appear on their own.
+    app.state.drive_poller = asyncio.create_task(poll_drive_folders_forever())
     yield
+    app.state.drive_poller.cancel()
     client.close()
 
 

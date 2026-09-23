@@ -11,6 +11,19 @@ manages clients.
 - `photos`: `{id (uuid str), client_id, drive_file_id (null for demo/URL photos), url, name, position}`
   — synced from the client's Drive folder; rows without `drive_file_id` survive re-syncs.
 
+## Automatic Drive sync (no manual step, no "open in Drive")
+- `backend/lib/poller.py` runs in the FastAPI lifespan and re-reads every client's Drive folder
+  every `DRIVE_POLL_SECONDS` (default 60) → photos exported from Capture One into Drive appear on
+  the site by themselves.
+- `backend/lib/sync.py` is INCREMENTAL: existing photo rows keep their ids (no flicker), new Drive
+  files are appended, deleted files are removed.
+- `GET /api/clients/:id` also re-syncs when the cache is >45s old (`STALE_AFTER_SECONDS`).
+- Frontend auto-refreshes: gallery query `refetchInterval` 30s, home 60s, both refetch on window
+  focus — an open gallery updates without reload.
+- Drive listing walks SUBFOLDERS recursively (depth 4) and paginates past 1000 files.
+- The guest-facing "Buka di Drive" link was REMOVED by user request; the badge now reads
+  "Foto diperbarui otomatis". Admin table still links the folder id for management.
+
 ## Key flows
 - Guest home `/`: hero + client cards (cover, name, date, venue, photo count) + search filter.
 - Guest gallery `/gallery/:clientId`: masonry photo grid + lightbox (←/→/ESC, download).

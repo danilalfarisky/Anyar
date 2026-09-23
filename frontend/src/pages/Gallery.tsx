@@ -20,6 +20,9 @@ export default function Gallery() {
     queryFn: () => apiGet<ClientDetail>(`/clients/${clientId}`),
     enabled: Boolean(clientId),
     retry: false,
+    // New Capture One exports land in Drive continuously — keep the open gallery current.
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   });
 
   return (

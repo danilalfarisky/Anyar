@@ -39,6 +39,8 @@ export default function Home() {
   const { data: clients, isPending, isError } = useQuery({
     queryKey: ["clients"],
     queryFn: () => apiGet<ClientSummary[]>("/clients"),
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
   });
 
   const filtered = useMemo(() => {
