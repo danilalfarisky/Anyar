@@ -1,5 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Heart } from "lucide-react";
+import { apiGet } from "@/lib/api";
 import { useSettings } from "@/lib/useSettings";
 
 function monogram(name: string): string {
@@ -7,10 +9,21 @@ function monogram(name: string): string {
   return words.slice(0, 2).map((w) => w[0]!.toUpperCase()).join("") || "AW";
 }
 
-/** Brand comes from the admin's settings, so every page shows the same name. */
+/** Brand comes from the admin's settings, so every page shows the same name.
+ *  The Admin link is hidden from guests — it appears only for a signed-in admin
+ *  (or while on /admin); the page itself stays reachable by typing the URL. */
 export default function NavigationHeader() {
   const { pathname } = useLocation();
   const { brand_name } = useSettings();
+
+  const me = useQuery({
+    queryKey: ["admin", "me"],
+    queryFn: () => apiGet<{ authenticated: boolean }>("/admin/me"),
+    retry: false,
+    staleTime: 30_000,
+  });
+  const showAdminLink = me.data?.authenticated === true || pathname.startsWith("/admin");
+
   const linkClass = (active: boolean) =>
     `text-[11px] font-medium uppercase transition-colors ${
       active ? "text-[var(--gold-soft)]" : "text-[var(--cream-muted)] hover:text-[var(--cream)]"
