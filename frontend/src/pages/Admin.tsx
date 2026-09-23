@@ -16,6 +16,7 @@ import {
 import NavigationHeader from "@/components/NavigationHeader";
 import ClientEditorModal from "@/components/ClientEditorModal";
 import PhotoManagerModal from "@/components/PhotoManagerModal";
+import SiteSettingsForm from "@/components/SiteSettingsForm";
 import { ApiError, apiDelete, apiGet, apiPost } from "@/lib/api";
 import type { AdminClient } from "@/lib/types";
 import { formatDate } from "@/lib/format";
@@ -108,9 +109,9 @@ export default function Admin() {
 
   if (me.isPending) {
     return (
-      <div className="min-h-svh bg-[#FAF8F5]">
+      <div className="min-h-svh bg-[#150609]">
         <NavigationHeader />
-        <div className="flex min-h-[50vh] items-center justify-center text-sm text-[#78716C]">
+        <div className="flex min-h-[50vh] items-center justify-center text-sm text-[var(--cream-muted)]">
           Memuat…
         </div>
       </div>
@@ -119,15 +120,15 @@ export default function Admin() {
 
   if (!me.data?.authenticated) {
     return (
-      <div className="min-h-svh bg-[#FAF8F5]">
+      <div className="min-h-svh bg-[#150609]">
         <NavigationHeader />
         <div className="flex min-h-[70vh] items-center justify-center px-4">
-          <Card className="w-full max-w-md border-[#E7DFD5] bg-white">
+          <Card className="w-full max-w-md border-[var(--line)] bg-[#230C12]">
             <CardHeader className="text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#F5EFEB] text-[#9A6B2F]">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#2E1118] text-[var(--gold)]">
                 <Lock className="h-5 w-5" />
               </div>
-              <CardTitle className="font-heading text-2xl text-[#1C1917]">Area Admin</CardTitle>
+              <CardTitle className="font-heading text-2xl text-[var(--cream)]">Area Admin</CardTitle>
               <CardDescription>
                 Masukkan PIN admin untuk mengelola daftar klien wedding.
               </CardDescription>
@@ -143,10 +144,10 @@ export default function Admin() {
                   if (e.key === "Enter" && pin) login.mutate(pin);
                 }}
                 placeholder="PIN Admin"
-                className="border-[#E7DFD5] text-center tracking-[0.4em]"
+                className="border-[var(--line)] text-center tracking-[0.4em]"
               />
               {pinError && (
-                <p data-testid="admin-pin-error" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-[#B91C1C]">
+                <p data-testid="admin-pin-error" className="rounded-lg bg-[#3A1620] px-3 py-2 text-sm text-[var(--destructive)]">
                   {pinError}
                 </p>
               )}
@@ -154,7 +155,7 @@ export default function Admin() {
                 data-testid="admin-pin-submit-btn"
                 onClick={() => login.mutate(pin)}
                 disabled={!pin || login.isPending}
-                className="w-full bg-[#9A6B2F] text-white hover:bg-[#7D5321]"
+                className="w-full bg-[var(--maroon)] text-[var(--cream)] hover:bg-[#A82A3E]"
               >
                 {login.isPending ? "Memeriksa…" : "Masuk"}
               </Button>
@@ -176,16 +177,16 @@ export default function Admin() {
   ];
 
   return (
-    <div className="min-h-svh bg-[#FAF8F5]">
+    <div className="min-h-svh bg-[#150609]">
       <NavigationHeader />
 
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-medium uppercase text-[#9A6B2F]" style={{ letterSpacing: "0.25em" }}>
+            <p className="text-xs font-medium uppercase text-[var(--gold)]" style={{ letterSpacing: "0.25em" }}>
               Panel Admin
             </p>
-            <h1 className="mt-2 font-heading text-3xl text-[#1C1917] sm:text-4xl">Kelola Klien Wedding</h1>
+            <h1 className="mt-2 font-heading text-3xl text-[var(--cream)] sm:text-4xl">Kelola Klien Wedding</h1>
           </div>
           <div className="flex items-center gap-3">
             <Button
@@ -194,7 +195,7 @@ export default function Admin() {
                 setEditing(null);
                 setEditorOpen(true);
               }}
-              className="bg-[#9A6B2F] text-white hover:bg-[#7D5321]"
+              className="bg-[var(--maroon)] text-[var(--cream)] hover:bg-[#A82A3E]"
             >
               <Plus className="h-4 w-4" />
               Tambah Klien
@@ -208,23 +209,27 @@ export default function Admin() {
 
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {stats.map((s) => (
-            <Card key={s.label} className="border-[#E7DFD5] bg-white">
+            <Card key={s.label} className="border-[var(--line)] bg-[#230C12]">
               <CardContent className="flex items-center gap-4">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#F5EFEB] text-[#9A6B2F]">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#2E1118] text-[var(--gold)]">
                   <s.icon className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="font-heading text-2xl text-[#1C1917]">{s.value}</p>
-                  <p className="text-xs text-[#78716C]">{s.label}</p>
+                  <p className="font-heading text-2xl text-[var(--cream)]">{s.value}</p>
+                  <p className="text-xs text-[var(--cream-muted)]">{s.label}</p>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        <Card className="mt-8 border-[#E7DFD5] bg-white">
+        <div className="mt-8">
+          <SiteSettingsForm />
+        </div>
+
+        <Card className="mt-8 border-[var(--line)] bg-[#230C12]">
           <CardHeader>
-            <CardTitle className="font-heading text-xl text-[#1C1917]">Daftar Klien</CardTitle>
+            <CardTitle className="font-heading text-xl text-[var(--cream)]">Daftar Klien</CardTitle>
             <CardDescription>
               Tambahkan, ubah, atau hapus klien. Tempelkan link folder Google Drive publik untuk
               menghubungkan foto — galeri tamu akan menampilkan isinya secara otomatis.
@@ -234,17 +239,17 @@ export default function Admin() {
             {clients.isPending ? (
               <div className="space-y-3" data-testid="admin-clients-skeleton">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-12 animate-pulse rounded bg-[#F5EFEB]" />
+                  <div key={i} className="h-12 animate-pulse rounded bg-[#2E1118]" />
                 ))}
               </div>
             ) : list.length === 0 ? (
-              <div className="py-12 text-center text-sm text-[#78716C]">
+              <div className="py-12 text-center text-sm text-[var(--cream-muted)]">
                 Belum ada klien — klik "Tambah Klien" untuk memulai.
               </div>
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-[#E7DFD5]">
+                  <TableRow className="border-[var(--line)]">
                     <TableHead>Nama Klien</TableHead>
                     <TableHead>Tanggal</TableHead>
                     <TableHead>Lokasi</TableHead>
@@ -255,19 +260,19 @@ export default function Admin() {
                 </TableHeader>
                 <TableBody>
                   {list.map((c) => (
-                    <TableRow key={c.id} data-testid="admin-client-row" className="border-[#E7DFD5]">
-                      <TableCell className="font-medium text-[#1C1917]">{c.name}</TableCell>
-                      <TableCell className="text-[#78716C]">
+                    <TableRow key={c.id} data-testid="admin-client-row" className="border-[var(--line)]">
+                      <TableCell className="font-medium text-[var(--cream)]">{c.name}</TableCell>
+                      <TableCell className="text-[var(--cream-muted)]">
                         {formatDate(c.event_date) || "—"}
                       </TableCell>
-                      <TableCell className="max-w-48 truncate text-[#78716C]">{c.venue || "—"}</TableCell>
-                      <TableCell className="max-w-40 truncate font-mono text-xs text-[#78716C]">
+                      <TableCell className="max-w-48 truncate text-[var(--cream-muted)]">{c.venue || "—"}</TableCell>
+                      <TableCell className="max-w-40 truncate font-mono text-xs text-[var(--cream-muted)]">
                         {c.drive_folder_id ? (
                           <a
                             href={c.drive_folder_url ?? `https://drive.google.com/drive/folders/${c.drive_folder_id}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-[#9A6B2F] hover:underline"
+                            className="text-[var(--gold)] hover:underline"
                           >
                             {c.drive_folder_id.slice(0, 12)}…
                           </a>
@@ -275,7 +280,7 @@ export default function Admin() {
                           "—"
                         )}
                       </TableCell>
-                      <TableCell className="text-right text-[#78716C]">{c.photo_count}</TableCell>
+                      <TableCell className="text-right text-[var(--cream-muted)]">{c.photo_count}</TableCell>
                       <TableCell className="text-right">
                         <div className="inline-flex items-center gap-1">
                           <Button
@@ -317,7 +322,7 @@ export default function Admin() {
                             aria-label={`Hapus ${c.name}`}
                             onClick={() => setDeleting(c)}
                           >
-                            <Trash2 className="h-4 w-4 text-[#B91C1C]" />
+                            <Trash2 className="h-4 w-4 text-[var(--destructive)]" />
                           </Button>
                         </div>
                       </TableCell>
@@ -345,9 +350,9 @@ export default function Admin() {
       />
 
       <Dialog open={Boolean(deleting)} onOpenChange={(open) => !open && setDeleting(null)}>
-        <DialogContent className="max-w-md border-[#E7DFD5] bg-white">
+        <DialogContent className="max-w-md border-[var(--line)] bg-[#230C12]">
           <DialogHeader>
-            <DialogTitle className="font-heading text-xl text-[#1C1917]">Hapus klien?</DialogTitle>
+            <DialogTitle className="font-heading text-xl text-[var(--cream)]">Hapus klien?</DialogTitle>
             <DialogDescription>
               {deleting?.name} beserta {deleting?.photo_count} foto galerinya akan dihapus secara
               permanen. Tindakan ini tidak dapat dibatalkan.

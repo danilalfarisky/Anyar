@@ -82,12 +82,12 @@ export default function ClientEditorModal({ open, onOpenChange, client, onSaved 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg border-[#E7DFD5] bg-white sm:max-w-lg">
+      <DialogContent className="max-w-lg border-[var(--line)] bg-[#230C12] sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="font-heading text-2xl text-[#1C1917]">
+          <DialogTitle className="font-heading text-2xl text-[var(--cream)]">
             {client ? "Ubah Klien" : "Tambah Klien Wedding"}
           </DialogTitle>
-          <DialogDescription className="text-sm text-[#78716C]">
+          <DialogDescription className="text-sm text-[var(--cream-muted)]">
             {client
               ? "Perbarui detail klien, lalu simpan perubahan Anda."
               : "Tambahkan nama klien beserta folder Google Drive berisi foto pernikahan mereka."}
@@ -136,7 +136,7 @@ export default function ClientEditorModal({ open, onOpenChange, client, onSaved 
               onChange={(e) => setDriveFolder(e.target.value)}
               placeholder="https://drive.google.com/drive/folders/…"
             />
-            <p className="text-xs text-[#78716C]">
+            <p className="text-xs text-[var(--cream-muted)]">
               Bagikan folder ke <span className="font-medium">"Siapa saja yang memiliki link"</span> —
               foto akan tersinkron otomatis dari folder tersebut.
             </p>
@@ -152,7 +152,7 @@ export default function ClientEditorModal({ open, onOpenChange, client, onSaved 
             />
           </div>
           {error && (
-            <p data-testid="admin-form-error" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-[#B91C1C]">
+            <p data-testid="admin-form-error" className="rounded-lg bg-[#3A1620] px-3 py-2 text-sm text-[var(--destructive)]">
               {error}
             </p>
           )}
@@ -166,7 +166,7 @@ export default function ClientEditorModal({ open, onOpenChange, client, onSaved 
             data-testid="admin-form-submit-btn"
             onClick={submit}
             disabled={saving}
-            className="bg-[#9A6B2F] text-white hover:bg-[#7D5321]"
+            className="bg-[var(--maroon)] text-[var(--cream)] hover:bg-[#A82A3E]"
           >
             {saving ? "Menyimpan…" : client ? "Simpan Perubahan" : "Tambah Klien"}
           </Button>

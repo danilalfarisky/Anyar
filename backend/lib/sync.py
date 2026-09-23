@@ -55,18 +55,40 @@ async def sync_client_photos(client: Client) -> int:
                     "name": item.name,
                     "url": "",
                     "position": next_position if manual else position,
+                    "album_id": item.album_id,
+                    "album_name": item.album_name,
                 }
             )
             next_position += 1
         elif not manual and (
-            current.get("position") != position or current.get("name") != item.name
+            current.get("position") != position
+            or current.get("name") != item.name
+            or current.get("album_id") != item.album_id
         ):
             await db.photos.update_one(
                 {"id": current["id"]},
-                {"$set": {"position": position, "name": item.name}},
+                {
+                    "$set": {
+                        "position": position,
+                        "name": item.name,
+                        "album_id": item.album_id,
+                        "album_name": item.album_name,
+                    }
+                },
             )
-        elif manual and current.get("name") != item.name:
-            await db.photos.update_one({"id": current["id"]}, {"$set": {"name": item.name}})
+        elif manual and (
+            current.get("name") != item.name or current.get("album_id") != item.album_id
+        ):
+            await db.photos.update_one(
+                {"id": current["id"]},
+                {
+                    "$set": {
+                        "name": item.name,
+                        "album_id": item.album_id,
+                        "album_name": item.album_name,
+                    }
+                },
+            )
     if new_docs:
         await db.photos.insert_many(new_docs)
 

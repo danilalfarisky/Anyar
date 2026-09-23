@@ -1,14 +1,13 @@
-"""Google Drive helpers — list photos from a PUBLIC ("anyone with the link") folder.
+"""Google Drive helpers — read a PUBLIC ("anyone with the link") folder as an album tree.
 
 Two strategies, tried in order:
 1. Drive API v3 `files.list` with a simple API key (`GOOGLE_DRIVE_API_KEY` in
-   backend/.env) — the reliable path for large galleries; create a free key at
-   console.cloud.google.com (enable "Google Drive API" → create an API key).
-2. Zero-credential fallback: walk the folder tree through the public "embedded
-   folder view" pages, recursing into subfolders (photo exporters like Capture One
-   often nest selects in subfolders).
+   backend/.env) — the reliable path for large galleries.
+2. Zero-credential fallback: walk the public "embedded folder view" pages.
 
-Both strategies walk subfolders (depth-limited) and return image files only.
+Every photo is tagged with the TOP-LEVEL subfolder it came from (`album_id` /
+`album_name`), so the gallery can present folders (Akad, Resepsi, …) before photos.
+Photos sitting directly in the client's folder have `album_id = None`.
 """
 
 import logging
@@ -26,7 +25,6 @@ _RAW_ID = re.compile(r"^[\w-]{10,}$")
 _ENTRY_ID = re.compile(r'id="entry-([\w-]{20,})"')
 _ENTRY_TITLE = re.compile(r'class="flip-entry-title">\s*([^<]*?)\s*<')
 _ENTRY_MIME = re.compile(r"/type/([\w/.-]+)")
-_SUBFOLDER_LINK = re.compile(r"https://drive\.google\.com/drive/folders/([\w-]{10,})")
 _IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".bmp", ".tif", ".tiff")
 FOLDER_MIME = "application/vnd.google-apps.folder"
 
@@ -38,6 +36,14 @@ _UA_HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36
 @dataclass
 class DrivePhoto:
     drive_file_id: str
+    name: str
+    album_id: str | None = None
+    album_name: str | None = None
+
+
+@dataclass
+class DriveFolder:
+    id: str
     name: str
 
 
@@ -77,33 +83,41 @@ def _is_image_name(name: str) -> bool:
 
 
 async def list_drive_photos(folder_id: str) -> list[DrivePhoto]:
-    """All image files inside the folder (subfolders included), ordered by name."""
+    """Every image in the folder tree, each tagged with its top-level album."""
     api_key = os.environ.get("GOOGLE_DRIVE_API_KEY", "").strip()
+    photos: list[DrivePhoto] = []
     if api_key:
         try:
-            photos: list[DrivePhoto] = []
             async with httpx.AsyncClient(timeout=30) as http:
-                await _walk_api(folder_id, api_key, http, photos, depth=0)
+                await _walk_api(folder_id, api_key, http, photos, depth=0, album=None)
             return photos
         except DriveError as exc:
             logger.warning("Drive API listing failed for %s (%s) — trying scrape fallback", folder_id, exc)
-    photos = []
+            photos = []
     seen: set[str] = set()
-    await _walk_scrape(folder_id, photos, seen, depth=0)
+    await _walk_scrape(folder_id, photos, seen, depth=0, album=None)
     return photos
 
 
 # ---- Strategy 1: official API with a simple (non-OAuth) key ----
 
 
-async def _walk_api(folder_id: str, api_key: str, http: httpx.AsyncClient, out: list[DrivePhoto], depth: int) -> None:
+async def _walk_api(
+    folder_id: str,
+    api_key: str,
+    http: httpx.AsyncClient,
+    out: list[DrivePhoto],
+    depth: int,
+    album: DriveFolder | None,
+) -> None:
     if depth > _MAX_DEPTH or len(out) >= _MAX_PHOTOS:
         return
-    subfolders: list[str] = []
+    subfolders: list[DriveFolder] = []
     params: dict[str, str] = {
         "q": f"'{folder_id}' in parents and trashed = false",
         "fields": "nextPageToken, files(id, name, mimeType)",
         "pageSize": "1000",
+        "orderBy": "folder, name_natural",
         "key": api_key,
     }
     while True:  # paginate past 1000 entries
@@ -118,9 +132,16 @@ async def _walk_api(folder_id: str, api_key: str, http: httpx.AsyncClient, out: 
         for f in data.get("files", []):
             mime = f.get("mimeType", "")
             if mime == FOLDER_MIME:
-                subfolders.append(f["id"])
+                subfolders.append(DriveFolder(id=f["id"], name=f.get("name", "Folder")))
             elif mime.startswith("image/"):
-                out.append(DrivePhoto(drive_file_id=f["id"], name=f.get("name", "")))
+                out.append(
+                    DrivePhoto(
+                        drive_file_id=f["id"],
+                        name=f.get("name", ""),
+                        album_id=album.id if album else None,
+                        album_name=album.name if album else None,
+                    )
+                )
                 if len(out) >= _MAX_PHOTOS:
                     return
         token = data.get("nextPageToken")
@@ -128,16 +149,17 @@ async def _walk_api(folder_id: str, api_key: str, http: httpx.AsyncClient, out: 
             break
         params["pageToken"] = token
     for sub in subfolders:
-        await _walk_api(sub, api_key, http, out, depth + 1)
+        # depth 0 subfolders become the albums; anything deeper keeps its ancestor album
+        await _walk_api(sub.id, api_key, http, out, depth + 1, album or sub)
 
 
 # ---- Strategy 2: zero-credential embedded folder view ----
 
 
-def _parse_folder_html(html: str) -> tuple[list[DrivePhoto], list[str]]:
-    """Parse one embedded-folder-view page into (images, subfolder_ids)."""
+def _parse_folder_html(html: str) -> tuple[list[DrivePhoto], list[DriveFolder]]:
+    """Parse one embedded-folder-view page into (images, subfolders)."""
     images: list[DrivePhoto] = []
-    subfolders: list[str] = []
+    subfolders: list[DriveFolder] = []
     matches = list(_ENTRY_ID.finditer(html))
     for i, m in enumerate(matches):
         block = html[m.end(): matches[i + 1].start() if i + 1 < len(matches) else len(html)]
@@ -146,16 +168,22 @@ def _parse_folder_html(html: str) -> tuple[list[DrivePhoto], list[str]]:
         mime_m = _ENTRY_MIME.search(block)
         mime = mime_m.group(1) if mime_m else ""
         if mime == FOLDER_MIME or FOLDER_MIME in block:
-            link_m = _SUBFOLDER_LINK.search(block)
-            if link_m:
-                subfolders.append(link_m.group(1))
+            subfolders.append(DriveFolder(id=m.group(1), name=title or "Folder"))
             continue
         if mime.startswith("image/") or _is_image_name(title):
-            images.append(DrivePhoto(drive_file_id=m.group(1), name=title or f"Foto {len(images) + 1}"))
+            images.append(
+                DrivePhoto(drive_file_id=m.group(1), name=title or f"Foto {len(images) + 1}")
+            )
     return images, subfolders
 
 
-async def _walk_scrape(folder_id: str, out: list[DrivePhoto], seen: set[str], depth: int) -> None:
+async def _walk_scrape(
+    folder_id: str,
+    out: list[DrivePhoto],
+    seen: set[str],
+    depth: int,
+    album: DriveFolder | None,
+) -> None:
     if depth > _MAX_DEPTH or len(out) >= _MAX_PHOTOS:
         return
     async with httpx.AsyncClient(timeout=30, follow_redirects=True, headers=_UA_HEADERS) as http:
@@ -166,13 +194,20 @@ async def _walk_scrape(folder_id: str, out: list[DrivePhoto], seen: set[str], de
             "ke 'Siapa saja yang memiliki link'"
         )
     if "flip-entry" not in res.text:
-        raise DriveError("Folder tidak berisi file, atau belum dibagikan ke 'Siapa saja yang memiliki link'")
+        if depth == 0:
+            raise DriveError(
+                "Folder tidak berisi file, atau belum dibagikan ke 'Siapa saja yang memiliki link'"
+            )
+        return  # an empty subfolder is fine
     images, subfolders = _parse_folder_html(res.text)
     for photo in images:
-        if photo.drive_file_id not in seen:
-            seen.add(photo.drive_file_id)
-            out.append(photo)
-            if len(out) >= _MAX_PHOTOS:
-                return
+        if photo.drive_file_id in seen:
+            continue
+        seen.add(photo.drive_file_id)
+        photo.album_id = album.id if album else None
+        photo.album_name = album.name if album else None
+        out.append(photo)
+        if len(out) >= _MAX_PHOTOS:
+            return
     for sub in subfolders:
-        await _walk_scrape(sub, out, seen, depth + 1)
+        await _walk_scrape(sub.id, out, seen, depth + 1, album or sub)

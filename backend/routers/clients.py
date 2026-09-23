@@ -12,9 +12,11 @@ from models.clients import (
     ClientDetail,
     ClientSummary,
     Photo,
+    albums_for,
     cover_for,
     to_photo_out,
 )
+from models.settings import SiteSettings
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/clients", tags=["clients"])
@@ -91,5 +93,6 @@ async def get_client(client_id: str):
         cover_photo_id=client.cover_photo_id,
         photo_count=len(photos),
         synced_at=_with_tz(client.synced_at),
+        albums=albums_for(photos),
         photos=[to_photo_out(p) for p in photos],
     )

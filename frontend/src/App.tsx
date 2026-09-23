@@ -7,7 +7,7 @@ import Admin from "@/pages/Admin";
 // One <Route> per page in src/pages; BrowserRouter already wraps this in main.tsx.
 export default function App() {
   return (
-    <div className="min-h-svh bg-[#FAF8F5] font-sans text-[#1C1917] antialiased">
+    <div className="min-h-svh bg-[#150609] font-sans text-[var(--cream)] antialiased">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/gallery/:clientId" element={<Gallery />} />

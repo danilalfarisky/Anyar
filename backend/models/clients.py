@@ -38,6 +38,8 @@ class Photo(BaseModel):
     url: str = ""
     name: str = ""
     position: int = 0
+    album_id: str | None = None  # top-level Drive subfolder this photo lives in
+    album_name: str | None = None
 
 
 # ---- Response shapes (mirrored by frontend/src/lib/types.ts — keep in sync) ----
@@ -49,6 +51,17 @@ class PhotoOut(BaseModel):
     thumb: str
     full: str
     alt: str | None = None  # fallback URL if the primary image CDN fails
+    album_id: str | None = None
+    album_name: str | None = None
+
+
+class AlbumOut(BaseModel):
+    """A folder inside the client's Drive folder, shown as a card before the photos."""
+
+    id: str  # the Drive subfolder id, or "__root__" for loose photos
+    name: str
+    photo_count: int
+    cover: str | None = None
 
 
 class ClientSummary(BaseModel):
@@ -71,6 +84,7 @@ class ClientDetail(BaseModel):
     cover_photo_id: str | None = None
     photo_count: int
     synced_at: datetime | None
+    albums: list[AlbumOut] = []
     photos: list[PhotoOut]
 
 
@@ -105,8 +119,41 @@ def to_photo_out(photo: Photo) -> PhotoOut:
             thumb=thumb_url(photo.drive_file_id),
             full=full_url(photo.drive_file_id),
             alt=alt_url(photo.drive_file_id),
+            album_id=photo.album_id,
+            album_name=photo.album_name,
         )
-    return PhotoOut(id=photo.id, name=photo.name, thumb=photo.url, full=photo.url)
+    return PhotoOut(
+        id=photo.id,
+        name=photo.name,
+        thumb=photo.url,
+        full=photo.url,
+        album_id=photo.album_id,
+        album_name=photo.album_name,
+    )
+
+
+ROOT_ALBUM_ID = "__root__"
+
+
+def albums_for(photos: list[Photo]) -> list[AlbumOut]:
+    """Group photos into folder cards, Drive subfolders first, loose photos last."""
+    buckets: dict[str, list[Photo]] = {}
+    names: dict[str, str] = {}
+    for photo in photos:
+        key = photo.album_id or ROOT_ALBUM_ID
+        buckets.setdefault(key, []).append(photo)
+        names[key] = photo.album_name or "Foto Lainnya"
+    albums = [
+        AlbumOut(
+            id=key,
+            name=names[key],
+            photo_count=len(items),
+            cover=to_photo_out(items[0]).thumb,
+        )
+        for key, items in buckets.items()
+    ]
+    albums.sort(key=lambda a: (a.id == ROOT_ALBUM_ID, a.name.lower()))
+    return albums
 
 
 def cover_for(client: Client, photos: list[Photo]) -> str | None:

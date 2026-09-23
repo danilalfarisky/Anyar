@@ -7,6 +7,25 @@ export interface Photo {
   thumb: string;
   full: string;
   alt?: string | null; // fallback URL used if the primary image CDN fails
+  album_id?: string | null;
+  album_name?: string | null;
+}
+
+export interface Album {
+  id: string;
+  name: string;
+  photo_count: number;
+  cover: string | null;
+}
+
+export interface SiteSettings {
+  brand_name: string;
+  hero_overline: string;
+  hero_title: string;
+  hero_date: string;
+  hero_cta: string;
+  hero_image_url: string;
+  footer_note: string;
 }
 
 export interface ClientSummary {
@@ -29,6 +48,7 @@ export interface ClientDetail {
   cover_photo_id: string | null;
   photo_count: number;
   synced_at: string | null;
+  albums: Album[];
   photos: Photo[];
 }
 

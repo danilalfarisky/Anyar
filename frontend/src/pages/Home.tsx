@@ -1,34 +1,53 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Images, Search, SearchX, WifiOff } from "lucide-react";
+import { FolderHeart, Search, SearchX, WifiOff } from "lucide-react";
 import NavigationHeader from "@/components/NavigationHeader";
-import HeroWeddingBanner from "@/components/HeroWeddingBanner";
-import ClientCard from "@/components/ClientCard";
+import HeroSection from "@/components/HeroSection";
+import FolderCard from "@/components/FolderCard";
 import { apiGet } from "@/lib/api";
-import type { ClientSummary } from "@/lib/types";
+import type { ClientSummary, SiteSettings } from "@/lib/types";
+import { formatDate } from "@/lib/format";
 import { Input } from "@/components/ui/input";
 
-function SkeletonCard() {
+const FALLBACK_SETTINGS: SiteSettings = {
+  brand_name: "Arsa Wedding Gallery",
+  hero_overline: "MOMENT ALBUM",
+  hero_title: "Cerita Cinta Mereka",
+  hero_date: "",
+  hero_cta: "SCROLL TO MEMORIES",
+  hero_image_url:
+    "https://images.unsplash.com/photo-1731566971965-acfb1151fc34?crop=entropy&cs=srgb&fm=jpg&q=85",
+  footer_note: "Setiap momen bahagia layak dikenang selamanya.",
+};
+
+function FolderSkeleton() {
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#E7DFD5] bg-white">
-      <div className="aspect-[4/3] animate-pulse bg-[#F5EFEB]" />
-      <div className="space-y-3 p-5">
-        <div className="h-5 w-2/3 animate-pulse rounded bg-[#F5EFEB]" />
-        <div className="h-4 w-1/2 animate-pulse rounded bg-[#F5EFEB]" />
-      </div>
+    <div className="rounded-2xl border border-[var(--line)] bg-[#230C12] p-2.5">
+      <div className="aspect-square animate-pulse rounded-xl bg-[#2E1118]" />
+      <div className="mt-3 h-3 w-2/3 animate-pulse rounded bg-[#2E1118]" />
     </div>
   );
 }
 
-function NoticeCard({ icon, title, body, children }: { icon: React.ReactNode; title: string; body: string; children?: React.ReactNode }) {
+function Notice({
+  icon,
+  title,
+  body,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+  children?: React.ReactNode;
+}) {
   return (
-    <div className="mx-auto mt-10 max-w-md rounded-2xl border border-[#E7DFD5] bg-white p-10 text-center">
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#F5EFEB] text-[#9A6B2F]">
+    <div className="mx-auto mt-10 max-w-sm rounded-2xl border border-[var(--line)] bg-[#230C12] p-8 text-center">
+      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[#2E1118] text-[var(--gold)]">
         {icon}
       </div>
-      <h3 className="mt-4 font-heading text-xl text-[#1C1917]">{title}</h3>
-      <p className="mt-2 text-sm text-[#78716C]">{body}</p>
+      <h3 className="mt-4 font-heading text-lg text-[var(--cream)]">{title}</h3>
+      <p className="mt-2 text-sm text-[var(--cream-muted)]">{body}</p>
       {children}
     </div>
   );
@@ -36,6 +55,15 @@ function NoticeCard({ icon, title, body, children }: { icon: React.ReactNode; ti
 
 export default function Home() {
   const [search, setSearch] = useState("");
+  const foldersRef = useRef<HTMLDivElement>(null);
+
+  const settingsQuery = useQuery({
+    queryKey: ["settings"],
+    queryFn: () => apiGet<SiteSettings>("/settings"),
+    retry: false,
+  });
+  const settings = settingsQuery.data ?? FALLBACK_SETTINGS;
+
   const { data: clients, isPending, isError } = useQuery({
     queryKey: ["clients"],
     queryFn: () => apiGet<ClientSummary[]>("/clients"),
@@ -53,90 +81,120 @@ export default function Home() {
   }, [clients, search]);
 
   const hasClients = (clients?.length ?? 0) > 0;
+  const heroMeta = hasClients ? `${clients!.length} folder galeri • tap untuk membuka` : undefined;
 
   return (
-    <div className="min-h-svh bg-[#FAF8F5]">
-      <NavigationHeader />
-      <HeroWeddingBanner />
+    <div className="min-h-svh bg-[#150609]">
+      <NavigationHeader brandName={settings.brand_name} />
 
-      <main className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+      <HeroSection
+        settings={settings}
+        meta={heroMeta}
+        onScrollDown={() => foldersRef.current?.scrollIntoView({ behavior: "smooth" })}
+      />
+
+      <main ref={foldersRef} className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-medium uppercase text-[#9A6B2F]" style={{ letterSpacing: "0.25em" }}>
-              Portofolio
+            <p
+              className="text-[10px] font-medium uppercase text-[var(--gold)]"
+              style={{ letterSpacing: "0.3em" }}
+            >
+              Folder Galeri
             </p>
-            <h2 className="mt-3 font-heading text-3xl text-[#1C1917] sm:text-4xl">Kisah Cinta Klien Kami</h2>
-            <p className="mt-2 max-w-xl text-sm text-[#78716C]">
-              Setiap pasangan memiliki cerita — pilih nama untuk menjelajahi galeri foto pernikahan mereka.
+            <h2 className="mt-3 font-heading text-3xl text-[var(--cream)]">Pilih Folder Klien</h2>
+            <p className="mt-2 max-w-md text-sm text-[var(--cream-muted)]">
+              Tiap pasangan punya foldernya sendiri. Ketuk folder untuk melihat isinya.
             </p>
           </div>
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#78716C]" />
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--cream-muted)]" />
             <Input
               data-testid="search-client-input"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cari nama klien atau lokasi…"
-              className="border-[#E7DFD5] bg-white pl-9"
+              placeholder="Cari nama atau lokasi…"
+              className="rounded-full border-[var(--line)] bg-[#230C12] pl-9 text-[var(--cream)] placeholder:text-[var(--cream-muted)]/70"
             />
           </div>
         </div>
 
         {isPending && (
-          <div data-testid="clients-skeleton" className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div
+            data-testid="clients-skeleton"
+            className="mt-9 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+          >
             {Array.from({ length: 6 }).map((_, i) => (
-              <SkeletonCard key={i} />
+              <FolderSkeleton key={i} />
             ))}
           </div>
         )}
 
         {!isPending && isError && !hasClients && (
-          <NoticeCard
+          <Notice
             icon={<WifiOff className="h-5 w-5" />}
-            title="Galeri sedang tidak dapat dimuat"
-            body="Koneksi ke server terganggu. Silakan muat ulang halaman dalam beberapa saat."
+            title="Galeri belum bisa dimuat"
+            body="Koneksi ke server terganggu. Coba muat ulang sebentar lagi."
           />
         )}
 
         {!isPending && !isError && !hasClients && (
-          <NoticeCard
-            icon={<Images className="h-5 w-5" />}
-            title="Belum ada klien"
-            body="Galeri ini masih kosong. Tambahkan klien wedding pertama melalui Area Admin."
+          <Notice
+            icon={<FolderHeart className="h-5 w-5" />}
+            title="Belum ada folder"
+            body="Tambahkan klien wedding pertama lewat Area Admin."
           >
-            <Link to="/admin" className="mt-5 inline-flex text-sm font-medium text-[#9A6B2F] hover:text-[#7D5321]">
+            <Link
+              to="/admin"
+              className="mt-5 inline-flex text-sm font-medium text-[var(--gold)] hover:text-[var(--gold-soft)]"
+            >
               Buka Area Admin →
             </Link>
-          </NoticeCard>
+          </Notice>
         )}
 
         {!isPending && hasClients && filtered.length === 0 && (
-          <NoticeCard
+          <Notice
             icon={<SearchX className="h-5 w-5" />}
             title="Tidak ditemukan"
-            body={`Tidak ada klien yang cocok dengan pencarian "${search}". Coba kata kunci lain.`}
+            body={`Tidak ada folder yang cocok dengan "${search}".`}
           />
         )}
 
         {!isPending && filtered.length > 0 && (
-          <div data-testid="clients-grid" className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 md:gap-10">
+          <div
+            data-testid="clients-grid"
+            className="mt-9 grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 lg:grid-cols-4"
+          >
             {filtered.map((client, i) => (
               <div
                 key={client.id}
-                style={{ animationDelay: `${Math.min(i * 60, 400)}ms` }}
+                style={{ animationDelay: `${Math.min(i * 55, 400)}ms` }}
                 className="animate-in fade-in slide-in-from-bottom-4 duration-500"
               >
-                <ClientCard client={client} />
+                <FolderCard
+                  testId="client-card-item"
+                  to={`/gallery/${client.id}`}
+                  title={client.name}
+                  cover={client.cover}
+                  count={client.photo_count}
+                  subtitle={
+                    [formatDate(client.event_date), client.venue].filter(Boolean).join(" • ") ||
+                    null
+                  }
+                />
               </div>
             ))}
           </div>
         )}
       </main>
 
-      <footer className="border-t border-[#E7DFD5] bg-white">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-8 text-sm text-[#78716C] sm:flex-row sm:px-6 lg:px-8">
-          <p className="font-heading italic">Arsa Wedding Gallery</p>
-          <p>Setiap momen bahagia layak dikenang selamanya.</p>
+      <footer className="border-t border-[var(--line)] bg-[#1B080C]">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 py-9 text-center text-xs text-[var(--cream-muted)] sm:px-6">
+          <p className="font-heading text-base italic text-[var(--gold-soft)]">
+            {settings.brand_name}
+          </p>
+          <p>{settings.footer_note}</p>
         </div>
       </footer>
     </div>

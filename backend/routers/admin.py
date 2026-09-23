@@ -21,6 +21,8 @@ from models.clients import (
     to_photo_out,
     utcnow,
 )
+from models.settings import SiteSettings, SiteSettingsUpdate
+from routers.settings import SETTINGS_KEY, load_settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -220,6 +222,23 @@ async def admin_set_cover(client_id: str, input: CoverInput):
     await db.clients.replace_one({"id": client_id}, client.model_dump())
     counts = await _photo_counts()
     return _admin_out(client, counts.get(client_id, 0))
+
+
+@router.get("/settings", response_model=SiteSettings, dependencies=[Depends(require_admin)])
+async def admin_get_settings():
+    return await load_settings()
+
+
+@router.put("/settings", response_model=SiteSettings, dependencies=[Depends(require_admin)])
+async def admin_update_settings(input: SiteSettingsUpdate):
+    """Update the guest landing page copy (hero overline, title, date, CTA, image)."""
+    current = await load_settings()
+    updates = {k: v for k, v in input.model_dump(exclude_unset=True).items() if v is not None}
+    merged = current.model_copy(update=updates)
+    await db.settings.update_one(
+        {"key": SETTINGS_KEY}, {"$set": {"key": SETTINGS_KEY, **merged.model_dump()}}, upsert=True
+    )
+    return merged
 
 
 @router.post("/clients/{client_id}/sync", dependencies=[Depends(require_admin)])
