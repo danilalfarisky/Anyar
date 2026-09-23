@@ -2,13 +2,13 @@
 
 Two strategies, tried in order:
 1. Drive API v3 `files.list` with a simple API key (`GOOGLE_DRIVE_API_KEY` in
-   backend/.env) — the reliable path; create a free key at console.cloud.google.com
-   (enable "Google Drive API", create an API key, restrict it to Drive).
-2. Zero-credential fallback: parse the folder's public "embedded folder view"
-   (https://drive.google.com/embeddedfolderview?id=...), which works for any
-   folder shared as "anyone with the link".
+   backend/.env) — the reliable path for large galleries; create a free key at
+   console.cloud.google.com (enable "Google Drive API" → create an API key).
+2. Zero-credential fallback: walk the folder tree through the public "embedded
+   folder view" pages, recursing into subfolders (photo exporters like Capture One
+   often nest selects in subfolders).
 
-Both return bare file ids + names; display URLs are built by `thumb_url`/`full_url`.
+Both strategies walk subfolders (depth-limited) and return image files only.
 """
 
 import logging
@@ -25,7 +25,13 @@ _ID_IN_URL = re.compile(r"[?&]id=([\w-]{10,})")
 _RAW_ID = re.compile(r"^[\w-]{10,}$")
 _ENTRY_ID = re.compile(r'id="entry-([\w-]{20,})"')
 _ENTRY_TITLE = re.compile(r'class="flip-entry-title">\s*([^<]*?)\s*<')
+_ENTRY_MIME = re.compile(r"/type/([\w/.-]+)")
+_SUBFOLDER_LINK = re.compile(r"https://drive\.google\.com/drive/folders/([\w-]{10,})")
 _IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".bmp", ".tif", ".tiff")
+FOLDER_MIME = "application/vnd.google-apps.folder"
+
+_MAX_DEPTH = 4  # subfolder levels to walk
+_MAX_PHOTOS = 3000  # global safety cap per client
 _UA_HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"}
 
 
@@ -54,72 +60,119 @@ def parse_folder_id(text: str | None) -> str | None:
 
 
 def thumb_url(file_id: str) -> str:
-    return f"https://drive.google.com/thumbnail?id={file_id}&sz=w900"
+    return f"https://lh3.googleusercontent.com/d/{file_id}=w1200"
 
 
 def full_url(file_id: str) -> str:
     return f"https://lh3.googleusercontent.com/d/{file_id}=w2000"
 
 
+def alt_url(file_id: str) -> str:
+    """Fallback renderer used by the frontend if the primary image CDN fails."""
+    return f"https://drive.google.com/thumbnail?id={file_id}&sz=w1600"
+
+
+def _is_image_name(name: str) -> bool:
+    return name.lower().endswith(_IMAGE_EXTS)
+
+
 async def list_drive_photos(folder_id: str) -> list[DrivePhoto]:
-    """All image files directly inside the folder, ordered by name."""
+    """All image files inside the folder (subfolders included), ordered by name."""
     api_key = os.environ.get("GOOGLE_DRIVE_API_KEY", "").strip()
     if api_key:
         try:
-            return await _list_via_api(folder_id, api_key)
+            photos: list[DrivePhoto] = []
+            async with httpx.AsyncClient(timeout=30) as http:
+                await _walk_api(folder_id, api_key, http, photos, depth=0)
+            return photos
         except DriveError as exc:
             logger.warning("Drive API listing failed for %s (%s) — trying scrape fallback", folder_id, exc)
-    return await _list_via_scrape(folder_id)
+    photos = []
+    seen: set[str] = set()
+    await _walk_scrape(folder_id, photos, seen, depth=0)
+    return photos
 
 
-async def _list_via_api(folder_id: str, api_key: str) -> list[DrivePhoto]:
-    params = {
-        "q": f"'{folder_id}' in parents and mimeType contains 'image/' and trashed = false",
-        "fields": "files(id,name)",
-        "orderBy": "name_natural",
+# ---- Strategy 1: official API with a simple (non-OAuth) key ----
+
+
+async def _walk_api(folder_id: str, api_key: str, http: httpx.AsyncClient, out: list[DrivePhoto], depth: int) -> None:
+    if depth > _MAX_DEPTH or len(out) >= _MAX_PHOTOS:
+        return
+    subfolders: list[str] = []
+    params: dict[str, str] = {
+        "q": f"'{folder_id}' in parents and trashed = false",
+        "fields": "nextPageToken, files(id, name, mimeType)",
         "pageSize": "1000",
         "key": api_key,
     }
-    async with httpx.AsyncClient(timeout=20) as http:
+    while True:  # paginate past 1000 entries
         res = await http.get("https://www.googleapis.com/drive/v3/files", params=params)
-    if res.status_code != 200:
-        try:
-            message = res.json()["error"]["message"]
-        except Exception:
-            message = res.text[:200]
-        raise DriveError(f"Google Drive API error {res.status_code}: {message}")
-    files = res.json().get("files", [])
-    return [DrivePhoto(drive_file_id=f["id"], name=f.get("name", "")) for f in files]
+        if res.status_code != 200:
+            try:
+                message = res.json()["error"]["message"]
+            except Exception:
+                message = res.text[:200]
+            raise DriveError(f"Google Drive API error {res.status_code}: {message}")
+        data = res.json()
+        for f in data.get("files", []):
+            mime = f.get("mimeType", "")
+            if mime == FOLDER_MIME:
+                subfolders.append(f["id"])
+            elif mime.startswith("image/"):
+                out.append(DrivePhoto(drive_file_id=f["id"], name=f.get("name", "")))
+                if len(out) >= _MAX_PHOTOS:
+                    return
+        token = data.get("nextPageToken")
+        if not token:
+            break
+        params["pageToken"] = token
+    for sub in subfolders:
+        await _walk_api(sub, api_key, http, out, depth + 1)
 
 
-async def _list_via_scrape(folder_id: str) -> list[DrivePhoto]:
-    url = f"https://drive.google.com/embeddedfolderview?id={folder_id}#grid"
-    async with httpx.AsyncClient(timeout=20, follow_redirects=True, headers=_UA_HEADERS) as http:
-        res = await http.get(url)
-    if res.status_code != 200:
-        raise DriveError(
-            f"Folder tidak dapat diakses (HTTP {res.status_code}) — pastikan folder dibagikan "
-            "ke 'Siapa saja yang memiliki link' "
-        )
-    html = res.text
-    if "flip-entry" not in html:
-        raise DriveError(
-            "Folder tidak berisi file, atau belum dibagikan ke 'Siapa saja yang memiliki link'"
-        )
-    photos: list[DrivePhoto] = []
-    seen: set[str] = set()
+# ---- Strategy 2: zero-credential embedded folder view ----
+
+
+def _parse_folder_html(html: str) -> tuple[list[DrivePhoto], list[str]]:
+    """Parse one embedded-folder-view page into (images, subfolder_ids)."""
+    images: list[DrivePhoto] = []
+    subfolders: list[str] = []
     matches = list(_ENTRY_ID.finditer(html))
     for i, m in enumerate(matches):
-        file_id = m.group(1)
-        if file_id in seen:
-            continue
-        seen.add(file_id)
         block = html[m.end(): matches[i + 1].start() if i + 1 < len(matches) else len(html)]
         title_m = _ENTRY_TITLE.search(block)
         title = title_m.group(1).strip() if title_m else ""
-        # each entry carries its mime type in the list-icon URL, e.g. .../type/image/jpeg
-        is_image = "type/image/" in block or title.lower().endswith(_IMAGE_EXTS)
-        if not is_image:
-            continue  # subfolders/docs render generic icons, not image previews
-        photos.append(DrivePhoto(drive_file_id=file_id, name=title or f"Foto {len(photos) + 1}"))
-    return photos
+        mime_m = _ENTRY_MIME.search(block)
+        mime = mime_m.group(1) if mime_m else ""
+        if mime == FOLDER_MIME or FOLDER_MIME in block:
+            link_m = _SUBFOLDER_LINK.search(block)
+            if link_m:
+                subfolders.append(link_m.group(1))
+            continue
+        if mime.startswith("image/") or _is_image_name(title):
+            images.append(DrivePhoto(drive_file_id=m.group(1), name=title or f"Foto {len(images) + 1}"))
+    return images, subfolders
+
+
+async def _walk_scrape(folder_id: str, out: list[DrivePhoto], seen: set[str], depth: int) -> None:
+    if depth > _MAX_DEPTH or len(out) >= _MAX_PHOTOS:
+        return
+    async with httpx.AsyncClient(timeout=30, follow_redirects=True, headers=_UA_HEADERS) as http:
+        res = await http.get(f"https://drive.google.com/embeddedfolderview?id={folder_id}#grid")
+    if res.status_code != 200:
+        raise DriveError(
+            f"Folder tidak dapat diakses (HTTP {res.status_code}) — pastikan folder dibagikan "
+            "ke 'Siapa saja yang memiliki link'"
+        )
+    if "flip-entry" not in res.text:
+        raise DriveError("Folder tidak berisi file, atau belum dibagikan ke 'Siapa saja yang memiliki link'")
+    images, subfolders = _parse_folder_html(res.text)
+    for photo in images:
+        if photo.drive_file_id not in seen:
+            seen.add(photo.drive_file_id)
+            out.append(photo)
+            if len(out) >= _MAX_PHOTOS:
+                return
+    for sub in subfolders:
+        await _walk_scrape(sub, out, seen, depth + 1)

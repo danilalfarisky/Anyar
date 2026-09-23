@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 from pydantic import BaseModel, Field
 
-from lib.drive import full_url, thumb_url
+from lib.drive import alt_url, full_url, thumb_url
 
 
 def utcnow() -> datetime:
@@ -46,6 +46,7 @@ class PhotoOut(BaseModel):
     name: str
     thumb: str
     full: str
+    alt: str | None = None  # fallback URL if the primary image CDN fails
 
 
 class ClientSummary(BaseModel):
@@ -100,6 +101,7 @@ def to_photo_out(photo: Photo) -> PhotoOut:
             name=photo.name,
             thumb=thumb_url(photo.drive_file_id),
             full=full_url(photo.drive_file_id),
+            alt=alt_url(photo.drive_file_id),
         )
     return PhotoOut(id=photo.id, name=photo.name, thumb=photo.url, full=photo.url)
 

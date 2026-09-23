@@ -1,0 +1,110 @@
+{
+  "iteration": 1,
+  "app": "Indonesian wedding photo gallery (farm-ts)",
+  "passed": 16,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "retest_needed": false,
+  "notes": [
+    "Seed-data mismatch vs briefing: the briefing states 6 demo clients with stock Unsplash/Pexels photos should exist, but the live DB only had 2 clients ('wanda danil' with 1 photo, 'Uji Drive Rekursif' with 22 photos) at test start. This is a data-state discrepancy, not an app bug — all criteria were still exercised using self-created tscheck- fixtures plus the pre-existing 'Uji Drive Rekursif' client (read-only use, never mutated).",
+    "The admin create/update payload field for the Drive folder link is `drive_folder` (not `drive_folder_url` as implied by the briefing's field naming) — discovered via a first failed backend-test attempt, corrected, and re-verified. Documenting for the next agent's benefit.",
+    "Left several tscheck-* fixture clients in the DB (own namespace only, per fixture-isolation rules); cleanup is optional and was not required for pass/fail."
+  ],
+  "bugs": [],
+  "action_items": [],
+  "checks": [
+    {
+      "criterion": "BUG FIX — client linked to a real public Drive folder shows ALL photos (22), not just one",
+      "name": "test_drive_recursive_listing_full_photo_set",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "POST /api/admin/clients {drive_folder: .../1tto2XSxREQHgTa7CRyjMftifVK8jzeyi} -> 200, then GET /api/admin/clients shows photo_count=22; GET /api/clients/{id} returns 22 photos with thumb/full fields; POST /api/admin/clients/{id}/sync -> 200, count stays 22."
+    },
+    {
+      "criterion": "BUG FIX — client linked to a real public Drive folder shows ALL photos (22), not just one",
+      "name": "admin-drive-full-photos",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Admin adds client 'tscheck-drivefull-<ts>' with the Drive folder link; admin row shows photo count 22; guest gallery page for that client shows 'gallery-photo-count' containing '22 Foto' and 22 gallery-photo-item tiles. Screenshots: admin-row-22-photos, gallery-22-tiles."
+    },
+    {
+      "criterion": "BUG FIX — Drive photos actually render as images (not broken boxes)",
+      "name": "drive-photos-render-as-images",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Sampled 5 <img> elements inside gallery-photo-item tiles on the Drive-backed gallery; each resolved to naturalWidth > 0 within 20s via the thumb/full/alt fallback chain. Screenshot: sample-images-loaded."
+    },
+    {
+      "criterion": "Manual re-sync keeps the full photo set",
+      "name": "admin-resync-keeps-photo-count",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Clicked admin-client-sync-btn on a fresh Drive-backed client; a success toast appeared and the row's photo count remained 22 (did not drop to 1 or 0). Screenshot: sync-toast."
+    },
+    {
+      "criterion": "Invalid Drive link is rejected clearly",
+      "name": "test_invalid_drive_link_rejected",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "POST /api/admin/clients {drive_folder: 'https://example.com/nope'} -> 400 {\"detail\":\"Link folder Google Drive tidak valid\"}; subsequent GET /api/clients confirms no client with that name was created."
+    },
+    {
+      "criterion": "Invalid Drive link is rejected clearly",
+      "name": "invalid-drive-link-rejected-ui",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Admin form with drive URL 'https://example.com/nope' shows a non-empty Indonesian error in admin-form-error ('Link folder Google Drive tidak valid'); after Batal, no admin-client-row for that client name exists. Screenshot: invalid-link-error."
+    },
+    {
+      "criterion": "Guest home lists clients with no login",
+      "name": "test_public_clients_listing_has_required_fields / test_public_listing_grows_with_new_client_no_auth_needed_to_view",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "Unauthenticated GET /api/clients returns id/name/photo_count for all rows and GET /api/clients/{id} works without cookies; a freshly admin-created client is immediately visible via the same unauthenticated GET."
+    },
+    {
+      "criterion": "Guest home lists clients with no login",
+      "name": "guest-home-lists-clients-no-login",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Home page (no auth) rendered clients-grid with >=6 client-card-item cards (topped up via API fixtures since live DB only had 2 clients), each with title/date; clicking a card's open button navigated to a gallery-title. Screenshots: home-cards, gallery-opened."
+    },
+    {
+      "criterion": "Gallery lightbox works",
+      "name": "gallery-lightbox-navigation",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "On 'Uji Drive Rekursif' gallery (22 photos, read-only), clicked photo -> lightbox-modal shows '1 dari 22'; next-btn -> '2 dari 22'; ArrowRight -> '3 dari 22'; ArrowLeft -> '2 dari 22'; Escape closed the modal. Screenshots: lightbox-first, lightbox-after-nav."
+    },
+    {
+      "criterion": "Admin CRUD works",
+      "name": "test_admin_crud_create_edit_delete",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "POST /api/admin/clients -> 200 creates tscheck-crud-<id>; visible via GET /api/clients; PUT renames it, GET /api/clients/{id} reflects new name; DELETE removes it, subsequent GET /api/clients/{id} -> 404."
+    },
+    {
+      "criterion": "Admin CRUD works",
+      "name": "admin-crud-add-edit-delete",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Added client via admin form (visible in admin table and guest home), edited its name (both surfaces updated), deleted it (row removed from admin table and gone from guest home search). Screenshots: created, edited, deleted."
+    },
+    {
+      "criterion": "Admin is protected",
+      "name": "test_wrong_pin_rejected / test_correct_pin_accepted / test_admin_endpoint_requires_session",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "POST /api/admin/login {pin:9999} -> 401 {\"detail\":\"PIN salah\"}; POST with pin 1234 -> 200 {\"ok\":true}; GET /api/admin/clients without session cookie -> 401."
+    },
+    {
+      "criterion": "Admin is protected",
+      "name": "admin-wrong-pin-rejected",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Entering PIN 9999 shows non-empty Indonesian error in admin-pin-error; client manager (admin-add-client-btn, admin-client-row) never rendered. Screenshot: wrong-pin-error."
+    }
+  ]
+}

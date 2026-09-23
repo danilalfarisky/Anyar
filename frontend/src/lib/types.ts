@@ -6,6 +6,7 @@ export interface Photo {
   name: string;
   thumb: string;
   full: string;
+  alt?: string | null; // fallback URL used if the primary image CDN fails
 }
 
 export interface ClientSummary {

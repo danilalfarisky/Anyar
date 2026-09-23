@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, CalendarDays, Images, MapPin, WifiOff } from "lucide-react";
 import NavigationHeader from "@/components/NavigationHeader";
 import GoogleDriveSyncBadge from "@/components/GoogleDriveSyncBadge";
+import GalleryPhotoImage from "@/components/GalleryPhotoImage";
 import PhotoLightbox from "@/components/PhotoLightbox";
 import { apiGet } from "@/lib/api";
 import type { ClientDetail } from "@/lib/types";
@@ -124,10 +125,8 @@ export default function Gallery() {
                     className="group mb-4 block w-full overflow-hidden rounded-xl border border-[#E7DFD5] bg-white break-inside-avoid shadow-sm md:mb-6"
                     aria-label={`Lihat foto ${i + 1}`}
                   >
-                    <img
-                      src={photo.thumb}
-                      alt={photo.name}
-                      loading="lazy"
+                    <GalleryPhotoImage
+                      photo={photo}
                       className="w-full transition-transform duration-500 group-hover:scale-[1.03]"
                     />
                   </motion.button>

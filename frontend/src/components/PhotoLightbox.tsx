@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { motion } from "motion/react";
 import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
 import type { Photo } from "@/lib/types";
+import { useImageChain } from "@/components/GalleryPhotoImage";
 
 interface Props {
   photos: Photo[];
@@ -11,9 +12,9 @@ interface Props {
 }
 
 export default function PhotoLightbox({ photos, index, onClose, onNavigate }: Props) {
-  const [failed, setFailed] = useState(false);
-  const photo = photos[index];
+  const photo = photos[index] ?? photos[0];
   const total = photos.length;
+  const image = useImageChain(photo ?? { id: "", name: "", thumb: "", full: "" }, "full");
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -28,8 +29,6 @@ export default function PhotoLightbox({ photos, index, onClose, onNavigate }: Pr
       document.body.style.overflow = "";
     };
   }, [index, total, onClose, onNavigate]);
-
-  useEffect(() => setFailed(false), [photo?.id]);
 
   if (!photo) return null;
 
@@ -75,8 +74,9 @@ export default function PhotoLightbox({ photos, index, onClose, onNavigate }: Pr
         <motion.img
           key={photo.id}
           data-testid="lightbox-image"
-          src={failed ? photo.thumb : photo.full}
-          onError={() => setFailed(true)}
+          src={image.src}
+          onError={image.onError}
+          referrerPolicy="no-referrer"
           onClick={stop}
           initial={{ scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}

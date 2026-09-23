@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 async def sync_client_photos(client: Client) -> int:
     """Replace this client's Drive-backed photos with the folder's current contents.
 
-    Rows without a `drive_file_id` (demo/manual URL photos) are preserved.
+    Photo rows without a `drive_file_id` (demo/manual URL photos) are preserved.
     Returns the number of Drive photos now attached.
     """
     if not client.drive_folder_id:
@@ -39,3 +39,11 @@ async def sync_client_photos(client: Client) -> int:
     )
     logger.info("synced %d drive photos for client %s", len(items), client.id)
     return len(items)
+
+
+async def sync_photos_quietly(client: Client) -> None:
+    """Background-safe variant: log failures, never raise into a response hook."""
+    try:
+        await sync_client_photos(client)
+    except Exception as exc:
+        logger.warning("background drive sync failed for %s: %s", client.drive_folder_id, exc)
