@@ -90,7 +90,7 @@ export default function PhotoManagerModal({ open, onOpenChange, client, onSaved 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[88vh] w-[min(95vw,64rem)] !max-w-none overflow-hidden border-[var(--line)] bg-[#230C12]">
+      <DialogContent className="max-h-[88vh] w-[min(95vw,64rem)] !max-w-none overflow-hidden border-[var(--line)] bg-[var(--surface)]">
         <DialogHeader>
           <DialogTitle className="font-heading text-2xl text-[var(--cream)]">
             Urutan &amp; Sampul Foto{client ? ` — ${client.name}` : ""}
@@ -106,7 +106,7 @@ export default function PhotoManagerModal({ open, onOpenChange, client, onSaved 
           {detail.isPending ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="aspect-[4/3] animate-pulse rounded-xl bg-[#2E1118]" />
+                <div key={i} className="aspect-[4/3] animate-pulse rounded-xl bg-[var(--surface-2)]" />
               ))}
             </div>
           ) : order.length === 0 ? (
@@ -121,9 +121,9 @@ export default function PhotoManagerModal({ open, onOpenChange, client, onSaved 
                   <div
                     key={photo.id}
                     data-testid="photo-manager-item"
-                    className="overflow-hidden rounded-xl border border-[var(--line)] bg-[#230C12]"
+                    className="overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)]"
                   >
-                    <div className="relative aspect-[4/3] overflow-hidden bg-[#2E1118]">
+                    <div className="relative aspect-[4/3] overflow-hidden bg-[var(--surface-2)]">
                       <GalleryPhotoImage photo={photo} className="h-full w-full object-cover" />
                       <span className="absolute left-2 top-2 rounded-full bg-[var(--cream)]/75 px-2 py-0.5 text-xs font-medium text-white">
                         {i + 1}
@@ -131,7 +131,7 @@ export default function PhotoManagerModal({ open, onOpenChange, client, onSaved 
                       {isCover && (
                         <span
                           data-testid="photo-manager-cover-badge"
-                          className="absolute right-2 top-2 rounded-full bg-[#2E1118] px-2 py-0.5 text-[10px] font-semibold text-[var(--gold-soft)]"
+                          className="absolute right-2 top-2 rounded-full bg-[var(--surface-2)] px-2 py-0.5 text-[10px] font-semibold text-[var(--gold-soft)]"
                         >
                           SAMPUL
                         </span>
@@ -198,7 +198,7 @@ export default function PhotoManagerModal({ open, onOpenChange, client, onSaved 
             data-testid="photo-manager-save-btn"
             disabled={!dirty || saveOrder.isPending || order.length === 0}
             onClick={() => saveOrder.mutate(order.map((p) => p.id))}
-            className="bg-[var(--maroon)] text-[var(--cream)] hover:bg-[#A82A3E]"
+            className="bg-[var(--maroon)] text-[var(--cream)] hover:bg-[var(--primary-hover)]"
           >
             {saveOrder.isPending ? "Menyimpan…" : "Simpan Urutan"}
           </Button>

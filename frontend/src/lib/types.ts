@@ -20,12 +20,33 @@ export interface Album {
 
 export interface SiteSettings {
   brand_name: string;
+  footer_note: string;
   hero_overline: string;
   hero_title: string;
   hero_date: string;
   hero_cta: string;
   hero_image_url: string;
-  footer_note: string;
+  home_eyebrow: string;
+  home_title: string;
+  home_subtitle: string;
+  search_placeholder: string;
+  gallery_eyebrow: string;
+  folder_section_label: string;
+  folder_open_label: string;
+  folder_hint_label: string;
+  auto_sync_label: string;
+  back_home_label: string;
+  back_folder_label: string;
+  color_ink: string;
+  color_surface: string;
+  color_surface_2: string;
+  color_primary: string;
+  color_primary_hover: string;
+  color_gold: string;
+  color_gold_soft: string;
+  color_blush: string;
+  color_cream: string;
+  color_line: string;
 }
 
 export interface ClientSummary {

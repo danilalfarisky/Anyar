@@ -6,26 +6,16 @@ import NavigationHeader from "@/components/NavigationHeader";
 import HeroSection from "@/components/HeroSection";
 import FolderCard from "@/components/FolderCard";
 import { apiGet } from "@/lib/api";
-import type { ClientSummary, SiteSettings } from "@/lib/types";
+import type { ClientSummary } from "@/lib/types";
+import { useSettings } from "@/lib/useSettings";
 import { formatDate } from "@/lib/format";
 import { Input } from "@/components/ui/input";
 
-const FALLBACK_SETTINGS: SiteSettings = {
-  brand_name: "Arsa Wedding Gallery",
-  hero_overline: "MOMENT ALBUM",
-  hero_title: "Cerita Cinta Mereka",
-  hero_date: "",
-  hero_cta: "SCROLL TO MEMORIES",
-  hero_image_url:
-    "https://images.unsplash.com/photo-1731566971965-acfb1151fc34?crop=entropy&cs=srgb&fm=jpg&q=85",
-  footer_note: "Setiap momen bahagia layak dikenang selamanya.",
-};
-
 function FolderSkeleton() {
   return (
-    <div className="rounded-2xl border border-[var(--line)] bg-[#230C12] p-2.5">
-      <div className="aspect-square animate-pulse rounded-xl bg-[#2E1118]" />
-      <div className="mt-3 h-3 w-2/3 animate-pulse rounded bg-[#2E1118]" />
+    <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-2.5">
+      <div className="aspect-square animate-pulse rounded-xl bg-[var(--surface-2)]" />
+      <div className="mt-3 h-3 w-2/3 animate-pulse rounded bg-[var(--surface-2)]" />
     </div>
   );
 }
@@ -42,8 +32,8 @@ function Notice({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="mx-auto mt-10 max-w-sm rounded-2xl border border-[var(--line)] bg-[#230C12] p-8 text-center">
-      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[#2E1118] text-[var(--gold)]">
+    <div className="mx-auto mt-10 max-w-sm rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-8 text-center">
+      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--gold)]">
         {icon}
       </div>
       <h3 className="mt-4 font-heading text-lg text-[var(--cream)]">{title}</h3>
@@ -57,12 +47,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const foldersRef = useRef<HTMLDivElement>(null);
 
-  const settingsQuery = useQuery({
-    queryKey: ["settings"],
-    queryFn: () => apiGet<SiteSettings>("/settings"),
-    retry: false,
-  });
-  const settings = settingsQuery.data ?? FALLBACK_SETTINGS;
+  const settings = useSettings();
 
   const { data: clients, isPending, isError } = useQuery({
     queryKey: ["clients"],
@@ -84,8 +69,8 @@ export default function Home() {
   const heroMeta = hasClients ? `${clients!.length} folder galeri • tap untuk membuka` : undefined;
 
   return (
-    <div className="min-h-svh bg-[#150609]">
-      <NavigationHeader brandName={settings.brand_name} />
+    <div className="min-h-svh bg-[var(--ink)]">
+      <NavigationHeader />
 
       <HeroSection
         settings={settings}
@@ -100,11 +85,11 @@ export default function Home() {
               className="text-[10px] font-medium uppercase text-[var(--gold)]"
               style={{ letterSpacing: "0.3em" }}
             >
-              Folder Galeri
+              {settings.home_eyebrow}
             </p>
-            <h2 className="mt-3 font-heading text-3xl text-[var(--cream)]">Pilih Folder Klien</h2>
+            <h2 className="mt-3 font-heading text-3xl text-[var(--cream)]">{settings.home_title}</h2>
             <p className="mt-2 max-w-md text-sm text-[var(--cream-muted)]">
-              Tiap pasangan punya foldernya sendiri. Ketuk folder untuk melihat isinya.
+              {settings.home_subtitle}
             </p>
           </div>
           <div className="relative w-full sm:w-72">
@@ -113,8 +98,8 @@ export default function Home() {
               data-testid="search-client-input"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cari nama atau lokasi…"
-              className="rounded-full border-[var(--line)] bg-[#230C12] pl-9 text-[var(--cream)] placeholder:text-[var(--cream-muted)]/70"
+              placeholder={settings.search_placeholder}
+              className="rounded-full border-[var(--line)] bg-[var(--surface)] pl-9 text-[var(--cream)] placeholder:text-[var(--cream-muted)]/70"
             />
           </div>
         </div>

@@ -21,7 +21,7 @@ from models.clients import (
     to_photo_out,
     utcnow,
 )
-from models.settings import SiteSettings, SiteSettingsUpdate
+from models.settings import SiteSettings
 from routers.settings import SETTINGS_KEY, load_settings
 
 logger = logging.getLogger(__name__)
@@ -230,15 +230,22 @@ async def admin_get_settings():
 
 
 @router.put("/settings", response_model=SiteSettings, dependencies=[Depends(require_admin)])
-async def admin_update_settings(input: SiteSettingsUpdate):
-    """Update the guest landing page copy (hero overline, title, date, CTA, image)."""
-    current = await load_settings()
-    updates = {k: v for k, v in input.model_dump(exclude_unset=True).items() if v is not None}
-    merged = current.model_copy(update=updates)
+async def admin_update_settings(input: SiteSettings):
+    """Replace the guest-facing presentation settings (all texts + palette + hero image)."""
     await db.settings.update_one(
-        {"key": SETTINGS_KEY}, {"$set": {"key": SETTINGS_KEY, **merged.model_dump()}}, upsert=True
+        {"key": SETTINGS_KEY}, {"$set": {"key": SETTINGS_KEY, **input.model_dump()}}, upsert=True
     )
-    return merged
+    return input
+
+
+@router.post("/settings/reset", response_model=SiteSettings, dependencies=[Depends(require_admin)])
+async def admin_reset_settings():
+    """Back to the shipped defaults."""
+    fresh = SiteSettings()
+    await db.settings.update_one(
+        {"key": SETTINGS_KEY}, {"$set": {"key": SETTINGS_KEY, **fresh.model_dump()}}, upsert=True
+    )
+    return fresh
 
 
 @router.post("/clients/{client_id}/sync", dependencies=[Depends(require_admin)])

@@ -3,11 +3,22 @@
 Wedding photo gallery web app (Indonesian UI, mobile-portrait first). Guests browse client
 galleries with ZERO login. Photos come from PUBLIC Google Drive folders and sync automatically.
 
-## Look & feel
-- Dark **maroon + soft gold** theme (`frontend/src/index.css`): `--maroon #8E1F32`, `--gold #D9A94B`,
-  ink `#150609`, cream `#FBF3EE`, blush `#E8A9B4`. `index.html` has `class="dark"`.
-- Fonts: **Playfair Display Variable** (headings) + **Outfit Variable** (body) — elegant + Gen-Z friendly.
-- Custom animations: `gold-shimmer-text`, `scroll-cue`, `folder-sheen`, `grain-overlay`.
+## Look & feel — fully admin-controlled
+- **Every colour and every guest-facing word lives in `settings`** (28 fields). `SiteSettings`
+  (`backend/models/settings.py`) holds brand, hero copy + image, home/gallery labels, and a
+  10-colour palette (`color_ink`, `color_surface`, `color_surface_2`, `color_primary`,
+  `color_primary_hover`, `color_gold`, `color_gold_soft`, `color_blush`, `color_cream`, `color_line`).
+- `frontend/src/lib/useSettings.ts` is the single read path (with `DEFAULT_SETTINGS` fallback so the
+  API-less static preview still renders). `components/ThemeApplier.tsx` maps the palette onto CSS
+  variables (`--ink`, `--surface`, `--maroon`, `--gold`, … plus the shadcn tokens) at runtime —
+  components must use `var(--…)`, never hardcoded hexes.
+- Admin editor: `components/SiteSettingsForm.tsx` — tabs Teks / Warna / Foto Sampul, 5 ready-made
+  palettes, live preview while picking, "Simpan Tampilan" + "Kembalikan Default"
+  (`PUT /api/admin/settings`, `POST /api/admin/settings/reset`).
+- Fonts: **Playfair Display Variable** (headings) + **Outfit Variable** (body). `index.html` has
+  `class="dark"`. Custom animations: `gold-shimmer-text`, `scroll-cue`, `folder-sheen`, `grain-overlay`.
+- `NavigationHeader` reads the brand from settings itself, so the name is identical on every page
+  (home, gallery, after opening a folder, admin) — this was a reported bug, now fixed.
 
 ## Screens (routes in `frontend/src/App.tsx`)
 - `/` **Home** — full-screen portrait hero (overline • date • big shimmering title • scroll cue,

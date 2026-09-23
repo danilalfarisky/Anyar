@@ -82,7 +82,7 @@ export default function ClientEditorModal({ open, onOpenChange, client, onSaved 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg border-[var(--line)] bg-[#230C12] sm:max-w-lg">
+      <DialogContent className="max-w-lg border-[var(--line)] bg-[var(--surface)] sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-heading text-2xl text-[var(--cream)]">
             {client ? "Ubah Klien" : "Tambah Klien Wedding"}
@@ -166,7 +166,7 @@ export default function ClientEditorModal({ open, onOpenChange, client, onSaved 
             data-testid="admin-form-submit-btn"
             onClick={submit}
             disabled={saving}
-            className="bg-[var(--maroon)] text-[var(--cream)] hover:bg-[#A82A3E]"
+            className="bg-[var(--maroon)] text-[var(--cream)] hover:bg-[var(--primary-hover)]"
           >
             {saving ? "Menyimpan…" : client ? "Simpan Perubahan" : "Tambah Klien"}
           </Button>

@@ -109,7 +109,7 @@ export default function Admin() {
 
   if (me.isPending) {
     return (
-      <div className="min-h-svh bg-[#150609]">
+      <div className="min-h-svh bg-[var(--ink)]">
         <NavigationHeader />
         <div className="flex min-h-[50vh] items-center justify-center text-sm text-[var(--cream-muted)]">
           Memuat…
@@ -120,12 +120,12 @@ export default function Admin() {
 
   if (!me.data?.authenticated) {
     return (
-      <div className="min-h-svh bg-[#150609]">
+      <div className="min-h-svh bg-[var(--ink)]">
         <NavigationHeader />
         <div className="flex min-h-[70vh] items-center justify-center px-4">
-          <Card className="w-full max-w-md border-[var(--line)] bg-[#230C12]">
+          <Card className="w-full max-w-md border-[var(--line)] bg-[var(--surface)]">
             <CardHeader className="text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#2E1118] text-[var(--gold)]">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--gold)]">
                 <Lock className="h-5 w-5" />
               </div>
               <CardTitle className="font-heading text-2xl text-[var(--cream)]">Area Admin</CardTitle>
@@ -155,7 +155,7 @@ export default function Admin() {
                 data-testid="admin-pin-submit-btn"
                 onClick={() => login.mutate(pin)}
                 disabled={!pin || login.isPending}
-                className="w-full bg-[var(--maroon)] text-[var(--cream)] hover:bg-[#A82A3E]"
+                className="w-full bg-[var(--maroon)] text-[var(--cream)] hover:bg-[var(--primary-hover)]"
               >
                 {login.isPending ? "Memeriksa…" : "Masuk"}
               </Button>
@@ -177,7 +177,7 @@ export default function Admin() {
   ];
 
   return (
-    <div className="min-h-svh bg-[#150609]">
+    <div className="min-h-svh bg-[var(--ink)]">
       <NavigationHeader />
 
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -195,7 +195,7 @@ export default function Admin() {
                 setEditing(null);
                 setEditorOpen(true);
               }}
-              className="bg-[var(--maroon)] text-[var(--cream)] hover:bg-[#A82A3E]"
+              className="bg-[var(--maroon)] text-[var(--cream)] hover:bg-[var(--primary-hover)]"
             >
               <Plus className="h-4 w-4" />
               Tambah Klien
@@ -209,9 +209,9 @@ export default function Admin() {
 
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {stats.map((s) => (
-            <Card key={s.label} className="border-[var(--line)] bg-[#230C12]">
+            <Card key={s.label} className="border-[var(--line)] bg-[var(--surface)]">
               <CardContent className="flex items-center gap-4">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#2E1118] text-[var(--gold)]">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--gold)]">
                   <s.icon className="h-5 w-5" />
                 </span>
                 <div>
@@ -227,7 +227,7 @@ export default function Admin() {
           <SiteSettingsForm />
         </div>
 
-        <Card className="mt-8 border-[var(--line)] bg-[#230C12]">
+        <Card className="mt-8 border-[var(--line)] bg-[var(--surface)]">
           <CardHeader>
             <CardTitle className="font-heading text-xl text-[var(--cream)]">Daftar Klien</CardTitle>
             <CardDescription>
@@ -239,7 +239,7 @@ export default function Admin() {
             {clients.isPending ? (
               <div className="space-y-3" data-testid="admin-clients-skeleton">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-12 animate-pulse rounded bg-[#2E1118]" />
+                  <div key={i} className="h-12 animate-pulse rounded bg-[var(--surface-2)]" />
                 ))}
               </div>
             ) : list.length === 0 ? (
@@ -350,7 +350,7 @@ export default function Admin() {
       />
 
       <Dialog open={Boolean(deleting)} onOpenChange={(open) => !open && setDeleting(null)}>
-        <DialogContent className="max-w-md border-[var(--line)] bg-[#230C12]">
+        <DialogContent className="max-w-md border-[var(--line)] bg-[var(--surface)]">
           <DialogHeader>
             <DialogTitle className="font-heading text-xl text-[var(--cream)]">Hapus klien?</DialogTitle>
             <DialogDescription>

@@ -26,7 +26,7 @@ export default function HeroSection({ settings, meta, onScrollDown }: Props) {
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(180deg, rgba(21,6,9,0.72) 0%, rgba(21,6,9,0.25) 38%, rgba(21,6,9,0.86) 78%, #150609 100%)",
+            "linear-gradient(180deg, rgba(21,6,9,0.72) 0%, rgba(21,6,9,0.25) 38%, rgba(21,6,9,0.86) 78%, var(--ink) 100%)",
         }}
       />
       <div className="grain-overlay absolute inset-0 opacity-60" />

@@ -11,6 +11,7 @@ import PhotoLightbox from "@/components/PhotoLightbox";
 import { apiGet } from "@/lib/api";
 import type { ClientDetail, Photo } from "@/lib/types";
 import { formatDate } from "@/lib/format";
+import { useSettings } from "@/lib/useSettings";
 import { buttonVariants } from "@/components/ui/button";
 
 const ROOT_ALBUM = "__root__";
@@ -20,6 +21,7 @@ export default function Gallery() {
   const [params, setParams] = useSearchParams();
   const openAlbum = params.get("album");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const settings = useSettings();
 
   const { data: client, isPending, isError } = useQuery({
     queryKey: ["client", clientId],
@@ -54,7 +56,7 @@ export default function Gallery() {
   };
 
   return (
-    <div className="min-h-svh bg-[#150609]">
+    <div className="min-h-svh bg-[var(--ink)]">
       <NavigationHeader />
 
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -67,7 +69,7 @@ export default function Gallery() {
             style={{ letterSpacing: "0.16em" }}
           >
             <ArrowLeft className="h-4 w-4" />
-            Kembali ke folder
+            {settings.back_folder_label}
           </button>
         ) : (
           <Link
@@ -77,25 +79,25 @@ export default function Gallery() {
             style={{ letterSpacing: "0.16em" }}
           >
             <ArrowLeft className="h-4 w-4" />
-            Kembali ke daftar klien
+            {settings.back_home_label}
           </Link>
         )}
 
         {isPending && (
           <div data-testid="gallery-skeleton" className="mt-8">
-            <div className="h-9 w-2/3 animate-pulse rounded bg-[#2E1118]" />
-            <div className="mt-3 h-4 w-1/3 animate-pulse rounded bg-[#2E1118]" />
+            <div className="h-9 w-2/3 animate-pulse rounded bg-[var(--surface-2)]" />
+            <div className="mt-3 h-4 w-1/3 animate-pulse rounded bg-[var(--surface-2)]" />
             <div className="mt-9 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="aspect-square animate-pulse rounded-2xl bg-[#2E1118]" />
+                <div key={i} className="aspect-square animate-pulse rounded-2xl bg-[var(--surface-2)]" />
               ))}
             </div>
           </div>
         )}
 
         {!isPending && (isError || !client) && (
-          <div className="mx-auto mt-16 max-w-sm rounded-2xl border border-[var(--line)] bg-[#230C12] p-8 text-center">
-            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[#2E1118] text-[var(--gold)]">
+          <div className="mx-auto mt-16 max-w-sm rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-8 text-center">
+            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--gold)]">
               <WifiOff className="h-5 w-5" />
             </div>
             <h2 className="mt-4 font-heading text-lg text-[var(--cream)]">
@@ -118,7 +120,7 @@ export default function Gallery() {
                 className="text-[10px] font-medium uppercase text-[var(--gold)]"
                 style={{ letterSpacing: "0.32em" }}
               >
-                {activeAlbum && !onlyOneFolder ? activeAlbumName : "Moment Album"}
+                {activeAlbum && !onlyOneFolder ? activeAlbumName : settings.gallery_eyebrow}
               </p>
               <h1
                 data-testid="gallery-title"
@@ -159,7 +161,7 @@ export default function Gallery() {
                   className="text-[10px] font-medium uppercase text-[var(--gold)]"
                   style={{ letterSpacing: "0.3em" }}
                 >
-                  Pilih Folder
+                  {settings.folder_section_label}
                 </p>
                 <div
                   data-testid="album-grid"
@@ -177,7 +179,7 @@ export default function Gallery() {
                         title={album.name}
                         cover={album.cover}
                         count={album.photo_count}
-                        subtitle="Ketuk untuk lihat foto"
+                        subtitle={settings.folder_hint_label}
                       />
                     </div>
                   ))}
@@ -213,7 +215,7 @@ export default function Gallery() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "0px 0px -40px 0px" }}
                         transition={{ duration: 0.4, delay: Math.min(i * 0.03, 0.4) }}
-                        className="group mb-3 block w-full overflow-hidden rounded-xl border border-[var(--line)] bg-[#230C12] break-inside-avoid sm:mb-4"
+                        className="group mb-3 block w-full overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)] break-inside-avoid sm:mb-4"
                         aria-label={`Lihat foto ${i + 1}`}
                       >
                         <GalleryPhotoImage

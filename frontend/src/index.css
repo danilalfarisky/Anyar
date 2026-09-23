@@ -84,7 +84,11 @@
     --sidebar-border: #3E1A23;
     --sidebar-ring: #D9A94B;
 
-    /* app tokens used directly in components */
+    /* app tokens used directly in components (overridden at runtime by the admin's palette) */
+    --ink: #150609;
+    --surface: #230C12;
+    --surface-2: #2E1118;
+    --primary-hover: #A82A3E;
     --maroon: #8E1F32;
     --maroon-deep: #5C121F;
     --maroon-ink: #150609;
